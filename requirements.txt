@@ -1,5 +1,8 @@
 pandas
 fastapi
-bootstrap
 uvicorn
-sqlite3
+jupyter
+matplotlib
+numpy
+pickle
+joblib
