@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 class UserCreate(BaseModel): # Definizione dello schema per la creazione di un utente
     nome: str = Field(min_length=1, max_length=50, description="Nome dell'utente")
@@ -30,18 +30,20 @@ class EmailCreate(BaseModel): # Definizione dello schema per la creazione di un'
     email_destinatario: EmailStr
     descrizione: Optional[str] = Field(default=None,min_length=0,description="Contenuto della mail (testo)")
     oggetto: Optional[str] = Field(default=None,min_length=0, description= "oggetto della mail")
+    email_id_risposta: Optional[int] = None # ID della mail a cui si sta rispondendo, se presente
     data: datetime # è la data usando datetime.now(timezone.utc) , momento in cui viene creata l'email
+    stato_spam: bool
+
     
 
 class EmailOut(EmailCreate): # Definizione dello schema per l'output di un'email
+    id: int
     email_sorgente: EmailStr
     email_destinatario: EmailStr
     descrizione: Optional[str] = None
     oggetto: Optional[str] = None
     data: datetime
-    stato_spam: Optional[bool] = False
-    stato_read: Optional[bool] = False
-    stato_delete: Optional[bool] = False
+    stato_spam: Optional[bool] = False #da modificare dopo.
     email_id_risposta: Optional[int] = None
 
     class Config:
