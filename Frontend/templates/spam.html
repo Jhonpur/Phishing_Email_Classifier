@@ -10,16 +10,15 @@
         
         <!-- Header sidebar -->
         <div class="d-flex align-items-center flex-shrink-0 p-3 link-body-emphasis text-decoration-none border-bottom">
-          <i class="bi bi-inbox me-2" style="font-size: 1.5rem;"></i>
-          <span class="fs-5 fw-semibold">Posta in arrivo</span>
+          <i class="bi bi-shield-x me-2" style="font-size: 1.5rem;"></i>
+          <span class="fs-5 fw-semibold">Spam</span>
           <span class="badge bg-primary ms-auto">{{ emails|length }}</span>
         </div>
 
         <!-- Lista email -->
         <div class="list-group list-group-flush border-bottom scrollarea flex-grow-1" style="overflow-y: scroll;">
           {% for email in emails %}
-          <!-- Email temporanee hardcoded per test -->
-          <a href="/inbox?email_id={{ email.id }}" 
+          <a href="/spam?email_id={{ email.id }}" 
              class="list-group-item list-group-item-action py-3 lh-sm
                     {% if selected_email and selected_email.id == email.id %}bg-primary-subtle border border-primary-subtle rounded{% endif %}
                     {% if not email.is_read %}fw-bold{% endif %}">
