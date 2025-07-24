@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <div class="row g-0">
+    
+    <!-- SIDEBAR SINISTRA - Lista Email -->
+    <div class="col-12 col-md-4 col-lg-3 border-end" style="height: calc(100vh - 100px);">
+      <div class="d-flex flex-column align-items-stretch flex-shrink-0 bg-body-tertiary h-100">
+        
+        <!-- Header sidebar -->
+        <div class="d-flex align-items-center flex-shrink-0 p-3 link-body-emphasis text-decoration-none border-bottom">
+          <i class="bi bi-inbox me-2" style="font-size: 1.5rem;"></i>
+          <span class="fs-5 fw-semibold">Posta in arrivo</span>
+          <span class="badge bg-primary ms-auto">{{ emails|length }}</span>
+        </div>
+
+        <!-- Lista email -->
+        <div class="list-group list-group-flush border-bottom scrollarea flex-grow-1" style="overflow-y: scroll;">
+          {% for email in emails %}
+          <!-- Email temporanee hardcoded per test -->
+          <a href="/inbox?email_id={{ email.id }}" 
+             class="list-group-item list-group-item-action py-3 lh-sm
+                    {% if selected_email and selected_email.id == email.id %}bg-primary-subtle border border-primary-subtle rounded{% endif %}
+                    {% if not email.is_read %}fw-bold{% endif %}">
+            <div class="d-flex w-100 align-items-center justify-content-between">
+              <div class="d-flex align-items-center">
+                {% if not email.is_read %}
+                <i class="bi bi-circle-fill text-primary me-2" style="font-size: 0.5rem;"></i>
+                {% endif %}
+                <strong class="mb-1">{{ email.sender }}</strong>
+              </div>
+              <small class="{% if not email.is_read %}text-primary{% else %}text-body-secondary{% endif %}">
+                {{ email.formatted_date }}
+              </small>
+            </div>
+            <div class="mb-1 {% if not email.is_read %}fw-semibold{% endif %}">{{ email.subject }}</div>
+            <div class="col-10 mb-1 small text-body-secondary">{{ email.preview }}</div>
+          </a>
+          {% endfor %}
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PANNELLO DESTRO - Contenuto Email -->
+    <div class="col-12 col-md-8 col-lg-9">
+      {% if selected_email %}
+      <div class="h-100 d-flex flex-column">
+        <!-- Header email selezionata -->
+        <div class="border-bottom p-4 bg-white">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <h4 class="mb-0">{{ selected_email.subject }}</h4>
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-reply"></i> Rispondi
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-90deg-right"></i> Inoltra
+              </button>
+              <button type="button" class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-trash"></i> Elimina
+              </button>
+            </div>
+          </div>
+          
+          <div class="d-flex align-items-center text-body-secondary small">
+            <strong class="text-dark me-2">Da:</strong>
+            <span class="me-4">{{ selected_email.sender }}</span>
+            <strong class="text-dark me-2">Data:</strong>
+            <span>{{ selected_email.date.strftime("%d/%m/%Y alle %H:%M") }}</span>
+          </div>
+        </div>
+        
+        <!-- Contenuto email -->
+        <div class="flex-grow-1 p-4 bg-light" style="overflow-y: auto;">
+          <div class="card">
+            <div class="card-body">
+              <p class="card-text">{{ selected_email.content }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <!-- Stato vuoto quando nessuna email è selezionata -->
+      <div class="h-100 d-flex align-items-center justify-content-center bg-light">
+        <div class="text-center text-muted">
+          <i class="bi bi-envelope-open" style="font-size: 4rem;"></i>
+          <h5 class="mt-3">Seleziona un'email da leggere</h5>
+          <p>Nessuna email selezionata</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}
