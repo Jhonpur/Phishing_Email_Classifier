@@ -5,4 +5,16 @@ jupyter
 matplotlib
 numpy
 pickle
-joblib
+joblibpip 
+mail-parser
+oletools
+tqdm
+scipy
+seaborn
+scikit-learn
+xgboost
+tensorflow
+transformers
+datasets
+torch
+hf_xet
