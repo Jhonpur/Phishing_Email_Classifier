@@ -23,9 +23,9 @@ GINI IMPURITY: Gini Impurity is a measurement used to build Decision Trees to de
 - si è eseguita un'analisi sulla percentuale di label, il dataset stesso è bilanciato, non ci saranno grossi problemi a valutarlo, ma il peso di ogni singolo dataset è diverso. Quindi ci si aspetta un buon risultato nel dataset totale, ma per evitare generalizzazione bisogna testarlo con i dataset singoli
 - si controllano i valori nulli e le celle vuote, e si riempiono con una stringa vuota nel caso di testo oppure con la media nel caso di valori numerici
 - dal testo vengono estratte delle feature numeriche tra cui: lunghezza dell'oggetto, numero di parole nel soggetto, lunghezza del body, numero parole nel body, densità del body, densità dell'oggetto, numero di link, numero di caratteri speciali, numero di punti esclamativi, flag se ha ip link, flag se ha parole bancarie.
-- Inoltre vengon estratte diverse entropie (misura di causalità): tra cui entropia per l'oggetto, per carattere, per carattere non ascii, per digits, per punteggiatura. Per l'entropia si usa l'entropia di shannon. C'è una formula che la calcola "Il teorema stabilisce che, per una serie di variabili aleatorie indipendenti ed identicamente distribuite (i.i.d.) di lunghezza che tende ad infinito, non è possibile comprimere i dati in un messaggio più corto dell'entropia totale senza perdita di informazione."
+- Inoltre vengon estratte diverse entropie (misura di causalità): tra cui entropia per l'oggetto, per carattere, per carattere non ascii, per digits, per punteggiatura. Per l'entropia si usa l'entropia di shannon (misura di informazione). C'è una formula che la calcola "Il teorema stabilisce che, per una serie di variabili aleatorie indipendenti ed identicamente distribuite (i.i.d.) di lunghezza che tende ad infinito, non è possibile comprimere i dati in un messaggio più corto dell'entropia totale senza perdita di informazione."
 
-# ANALYS
+# ANALISYS
 - adesso che abbiamo le nostre feature passiamo all'analisi
 - si inizia con una HEAT MAP, per vedere se le feature sono correlate. Vengono scartate quelle con una valore di correlazione molto alto, perché sarebbero ridondanti e questo può destabilizzare i coefficienti nei modelli lineari. Inoltre rimuovere feature semplifica il modello
 - si fa un'altra analisi di feature importance attraverso un classficatore random forest basandosi su quanto ogni feature riduce l'impurità dei nodi dell'albero usando una Gini Impurity Index. Vengono tolte le 3 peggiori
@@ -55,8 +55,3 @@ Usano subject e body feature per ling e enron, per gli altri 5 usano: sender, re
 - metriche 2: usano accuracy, precision, recall, f1score
 - per dataset sbilanciati i migliori sono ADB e XGB
 - per dataset grandi: ADB performa di meno in confronto agli altri
-
-
-#### Feature Importance Analysis
-- body è la feature più importante in tutti, tranne SVM che considera il sender quello più importante
-- tutti gli algoritmi dicono che la feature URL sia meno importante
