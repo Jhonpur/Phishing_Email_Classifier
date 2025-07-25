@@ -2,7 +2,7 @@
 
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Text
 from sqlalchemy.orm import relationship
-from db import Base
+from .db import Base
 from datetime import datetime, timezone
 
 class User(Base): # Definizione del modello User per l'ORM

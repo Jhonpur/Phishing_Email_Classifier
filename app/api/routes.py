@@ -3,29 +3,33 @@ from fastapi import FastAPI,  HTTPException
 from fastapi.responses import StreamingResponse
 import random as rd
 from datetime import datetime, timezone
+from sqlalchemy.orm import sessionmaker
 #from passlib.context import CryptContext # per la gestione delle password
 #from database import db, crud, schemas, models
 #from app.database.models import User, Email
 
 from io import BytesIO
-from utils.pdf_generator import generate_report
+from app.utils.pdf_generator import generate_report
 from app.database.db import engine, Base, SessionLocal
-from ...models import crud, models, schemas
+from app.database import crud, models, schemas
 
-from sqlalchemy.orm import sessionmaker
+
 Base.metadata.create_all(bind=engine)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 db = SessionLocal()
-
 app = FastAPI()
 
 #pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto") # per la gestione delle password
 
 
+@app.get("/")
+def lire_racine():
+    return {"message": "Bienvenue !"}
+
 """quando ricevo una mail, scansiono il messaggio per determinare se è spam oppure no."""
 def scansiona_spam():
-    num = rd.randint(0,1)
-    return num
+   return  rd.randint(0,1)
+
 
 
 
@@ -36,21 +40,18 @@ def login(data: dict):
     us = crud.get_user_by_email(db, data["email"]) # verificare se la mail non esiste gia 
     if us:
         raise HTTPException(status_code=401, detail="mail gia esistente nel database")
-    else:
-     for user in users:
-        users = crud.get_all_users(db)
+    
+    users = crud.get_all_users(db)
+    for user in users:
         if user.email == data["email"] and user.password == data["password"]:
             return {"user_id": user.id}
-     raise HTTPException(status_code=401, detail="Credenziali non valide")
+    raise HTTPException(status_code=401, detail="Credenziali non valide")
 
 #end point per fare il login di un utente
-"""@app.post("/login", response_model=schemas.UserOut)
-def login(user: schemas.UserCreate):
-    db_user = crud.get_user_by_email(db, user.email)
-    if not db_user or not pwd_context.verify(user.password, db_user.password):
-        raise HTTPException(status_code=400, detail="Invalid email or password")
-    
-    return schemas.UserOut.model_validate(db_user) """
+@app.get("/login/i")
+def login():
+    return {'message':'hello bello, funziona tutto bene !'}
+
 
 
 
@@ -104,7 +105,6 @@ def get_sent(user_mail: str):
         raise HTTPException(status_code=404, detail="User not found")
 
     emails = user.sent
-
     return [schemas.EmailOut.model_validate(email) for email in emails]    # in formato json
 
 
@@ -118,7 +118,6 @@ def get_spam(user_mail: str):
         raise HTTPException(status_code=404, detail="User not found") # o si ritorna un messaggio
 
     emails = [email for email in user.received if email.stato_spam]
-    
     return [schemas.EmailOut.model_validate(email) for email in emails]
 
 
@@ -132,7 +131,6 @@ def get_trash(user_mail: str):
         raise HTTPException(status_code=404, detail="User not found") # oppure si ritorna un messagio
 
     emails = crud.get_deleted_emails_by_user(db,user.id)
-    
     return [schemas.EmailOut.model_validate(email) for email in emails]
 
 
@@ -164,7 +162,7 @@ def restore_received_email(user_mail: str, email_id: int):
 -numero di mail non lette
 -numero di mail cancellate
 e ci sara anche un grafico a barra o torta per visualizzare queste statistiche """
-@app.get("user/report/pdf")
+@app.get("/user/report/pdf")
 def report_category(category: str, user_id:int):
     user = crud.get_user_by_id(db, user_id)
     try:
@@ -173,6 +171,5 @@ def report_category(category: str, user_id:int):
                                  media_type="application/pdf",
                                  headers={"Content-Disposition": f"attachment; filename=rapport_categorie_{user.nome}.pdf"})
     except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-
+        print("Errore:", e)
+        raise HTTPException(status_code=404, detail=str(e)) 

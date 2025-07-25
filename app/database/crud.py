@@ -1,7 +1,7 @@
 """funzioni per interragire con il database"""
 
 from sqlalchemy.orm import Session
-from models import User, Email, UserEmail
+from .models import User, Email, UserEmail
 from datetime import datetime, timezone
 #from datetime import datetime
  
