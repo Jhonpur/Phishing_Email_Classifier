@@ -16,7 +16,7 @@ from app.database import crud, models, schemas
 
 Base.metadata.create_all(bind=engine)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-db = SessionLocal()
+db = SessionLocal() 
 app = FastAPI()
 
 #pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto") # per la gestione delle password
@@ -47,6 +47,9 @@ def login(data: dict):
             return {"user_id": user.id}
     raise HTTPException(status_code=401, detail="Credenziali non valide")
 
+
+
+
 #end point per fare il login di un utente
 @app.get("/login/i")
 def login():
@@ -69,8 +72,8 @@ def send_email(email: schemas.EmailCreate):
     # Crea l'email
     email_obj = crud.create_email_with_user_relation(
         db=db,
-        utente_id_sorgente=utente_sorgente.id,
-        utente_id_destinatario=utente_destinatario.id,
+        user_id_sorgente=utente_sorgente.id,
+        user_id_destinatario=utente_destinatario.id,
         email_sorgente=email.email_sorgente,
         email_destinatario=email.email_destinatario,
         descrizione=email.descrizione,
@@ -124,7 +127,7 @@ def get_spam(user_mail: str):
 
 
 #end point per visualizzare le mail segnate come delete
-@app.get("/user/{user_mail}/trash", response_model=list[schemas.EmailOut])
+@app.get("/user/trash", response_model=list[schemas.EmailOut])
 def get_trash(user_mail: str):
     user = crud.get_user_by_email(db, user_mail)
     if not user:
@@ -134,6 +137,21 @@ def get_trash(user_mail: str):
     return [schemas.EmailOut.model_validate(email) for email in emails]
 
 
+#end point per eliminare una mail
+@app.post("/user/delete/", response_model=schemas.EmailOut)
+def delete_email(user_mail: str, email_id: int):
+    user = crud.get_user_by_email(db, user_mail)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    email = crud.get_email_by_id(db, email_id)
+    if not email or email.utente_id_destinatario != user.id:
+        raise HTTPException(status_code=404, detail="Email not found")
+    crud.update_user_email_delete_status(db, user.id, email.id)  #
+    #crud.delete_email(db, email.id)
+    return schemas.EmailOut.model_validate(email)
+
+
 #end point per ristorare una mail eliminata in non eliminata
 @app.post("/user/restore/", response_model=schemas.EmailOut)
 def restore_received_email(user_mail: str, email_id: int):
@@ -141,16 +159,30 @@ def restore_received_email(user_mail: str, email_id: int):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    email = crud.get_deleted_emails_by_user(db, user.id).filter(lambda x: x.id == email_id)
-    if not email or not email.stato_delete:
+    emails = crud.get_deleted_emails_by_user(db, user.id)
+    email = next((e for e in emails if e.id == email_id), None)
+    if not email or not hasattr(email, "user_emails") or not any(ue.stato_delete for ue in email.user_emails if ue.user_id == user.id):
         raise HTTPException(status_code=404, detail="Email not found or not in trash")
 
 
     crud.restore_user_email(db, user.id, email.id)
-
-
     return schemas.EmailOut.model_validate(crud.get_email_by_id(db, email.id))
 
+
+#end point per leggere una mail/ segnare una mail come letta
+@app.post("/user/read/", response_model=schemas.EmailOut)
+def read_email(user_mail: str, email_id: int):
+    user = crud.get_user_by_email(db, user_mail)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    email = crud.get_email_by_id(db, email_id)
+    if not email or email.utente_id_destinatario != user.id:
+        raise HTTPException(status_code=404, detail="Email not found")
+
+    crud.update_user_email_read_status(db, user.id, email.id)
+    #crud.mark_email_as_read(db, user.id, email.id)
+    return schemas.EmailOut.model_validate(email)
 
 
 #end point che genera il report pdf delle mail spam, con dentro le statistiche su tutte le mail
@@ -163,10 +195,11 @@ def restore_received_email(user_mail: str, email_id: int):
 -numero di mail cancellate
 e ci sara anche un grafico a barra o torta per visualizzare queste statistiche """
 @app.get("/user/report/pdf")
-def report_category(category: str, user_id:int):
-    user = crud.get_user_by_id(db, user_id)
+def report_category(user_mail:str):
+    user = crud.get_user_by_email(db, user_mail)
+    #user = crud.get_user_by_id(db, user_id.id)
     try:
-        pdf_bytes = generate_report(db, user_id)
+        pdf_bytes = generate_report(db, user.id)
         return StreamingResponse(BytesIO(pdf_bytes),
                                  media_type="application/pdf",
                                  headers={"Content-Disposition": f"attachment; filename=rapport_categorie_{user.nome}.pdf"})

@@ -249,8 +249,8 @@ def create_email_with_user_relation(
         email_id_risposta=email_id_risposta
     )
     
-    create_user_email(db, user_id_sorgente, email.id)
-    create_user_email(db, user_id_destinatario, email.id)
+    #create_user_email(db, user_id_sorgente, email.id)
+    create_user_email(db, user_id_destinatario, email.id) # solo per chi riceve l'email
     return email
 
 

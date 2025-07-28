@@ -1,11 +1,12 @@
 """(serve solo per testare localmente)"""
 
 #from sqlalchemy.orm import Session
-from db import engine, Base, SessionLocal
-from models import *
-from crud import *
-from schemas import *
+from app.database.db import engine, Base, SessionLocal
+from app.database.models import *
+from app.database.crud import *
+from app.database.schemas import *
 import random as rd #  solo per il test 
+from datetime import datetime, timezone
 
 # Crea le tabelle nel database
 Base.metadata.create_all(bind=engine)
@@ -141,6 +142,9 @@ def main():
     ange = get_user_by_id(db, user1.id)
     print("Email inviate da Mario:", ange.sent)
     sep()
+
+    #update_user_email_delete_status(db,user1.id, 2)
+    #update_user_email_delete_status(db,user1.id, 8)
 
     for email in ange.sent:
         email_out = EmailOut.model_validate(email) #si converte la mail in uno schema Pydantic per l'output
