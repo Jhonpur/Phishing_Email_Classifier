@@ -205,4 +205,4 @@ def report_category(user_mail:str):
                                  headers={"Content-Disposition": f"attachment; filename=rapport_categorie_{user.nome}.pdf"})
     except Exception as e:
         print("Errore:", e)
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) 

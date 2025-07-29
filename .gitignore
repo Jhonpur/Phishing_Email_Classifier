@@ -206,4 +206,11 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-dataset/
+dataset/nazario
+dataset/enron
+dataset/seven_phishing_dataset
+dataset/email_dataset_with_attachments.csv
+dataset/3_features_phishing.csv
+dataset/7_features_phishing.csv
+dataset/cleaned_email_dataset.csv
+dataset/3_features_phishing_enhanced.csv
