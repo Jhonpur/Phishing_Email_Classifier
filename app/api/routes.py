@@ -126,7 +126,7 @@ async def inbox(request: Request, email_id: int = None):
     # Ordina email per data (più recenti prima)
     sorted_emails = sorted(MOCK_EMAILS, key=lambda x: x["date"], reverse=True)
     sent = request.query_params.get("sent") == "true"
-    # Aggiungi date formattate
+    # Date formattate
     for email in sorted_emails:
         email["formatted_date"] = format_email_date(email["date"])
     
@@ -157,7 +157,7 @@ async def post_send_email(
     subject: str = Form(...),
     content: str = Form(...)
 ):
-    # Per ora stampa nel terminale o log — sostituirai con salvataggio nel DB
+    # Per ora stampa nel terminale o log — da sostituire con salvataggio nel DB
     print("EMAIL INVIATA:")
     print(f"Destinatario: {recipient}")
     print(f"Oggetto: {subject}")
@@ -165,7 +165,7 @@ async def post_send_email(
 
     # In futuro: salva email nel database, triggera classificatore spam, ecc.
 
-    # Esempio di risposta: mostra messaggio di successo
+    # mostra pop-up di successo in inbox
     return RedirectResponse(url="/inbox?sent=true", status_code=303)
 
 

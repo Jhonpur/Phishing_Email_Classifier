@@ -17,8 +17,8 @@
 
         <!-- Lista email -->
         <div class="list-group list-group-flush border-bottom scrollarea flex-grow-1" style="overflow-y: scroll;">
+          <!-- Ciclo per card email -->
           {% for email in emails %}
-          <!-- Email temporanee hardcoded per test -->
           <a href="/inbox?email_id={{ email.id }}" 
              class="list-group-item list-group-item-action py-3 lh-sm
                     {% if selected_email and selected_email.id == email.id %}bg-primary-subtle border border-primary-subtle rounded{% endif %}
