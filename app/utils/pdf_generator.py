@@ -93,7 +93,7 @@ def generate_report(db: Session, user_id: int) -> bytes:
     pdf.add_text_grasetto(f"NUMERO DI MAIL RICEVUTE :")
     pdf.add_text(f"{num_tot_mail_riceived} ")
     
-    pdf.add_text_grasetto(f"PREZZO DI MAIL INVIATE :")
+    pdf.add_text_grasetto(f"NUMERO DI MAIL INVIATE :")
     pdf.add_text(f"{num_tot_mail_sent} ")
     
     pdf.add_text_grasetto(f"NUMERO TOTALE DI MAIL SPAM :")
