@@ -125,8 +125,9 @@ def format_email_date(email_date):
 async def inbox(request: Request, email_id: int = None):
     # Ordina email per data (più recenti prima)
     sorted_emails = sorted(MOCK_EMAILS, key=lambda x: x["date"], reverse=True)
+
     sent = request.query_params.get("sent") == "true"
-    # Date formattate
+    # Aggiungi date formattate
     for email in sorted_emails:
         email["formatted_date"] = format_email_date(email["date"])
     
