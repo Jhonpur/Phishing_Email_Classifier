@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from datetime import datetime, timedelta
 
@@ -107,9 +107,6 @@ MOCK_TRASH_EMAILS = [
 async def home(request: Request):
     return templates.TemplateResponse("base.html", {"request": request})
 
-#@router.get("/inbox", response_class=HTMLResponse)
-#async def inbox(request: Request):
-#    return templates.TemplateResponse("inbox.html", {"request": request})
 
 def format_email_date(email_date):
     now = datetime.now()
@@ -123,10 +120,14 @@ def format_email_date(email_date):
     else:
         return email_date.strftime("%d/%m")
 
+
 @router.get("/inbox", response_class=HTMLResponse)
 async def inbox(request: Request, email_id: int = None):
     # Ordina email per data (più recenti prima)
     sorted_emails = sorted(MOCK_EMAILS, key=lambda x: x["date"], reverse=True)
+
+    sent = request.query_params.get("sent") == "true"
+
     
     # Aggiungi date formattate
     for email in sorted_emails:
@@ -142,8 +143,33 @@ async def inbox(request: Request, email_id: int = None):
     return templates.TemplateResponse("inbox.html", {
         "request": request,
         "emails": sorted_emails,
-        "selected_email": selected_email
+        "selected_email": selected_email,
+        "sent": sent
     })
+
+# Caricamento del form
+@router.get("/send", response_class=HTMLResponse)
+async def get_send_email(request: Request):
+    return templates.TemplateResponse("send.html", {"request": request})
+
+# Invio del form
+@router.post("/send", response_class=HTMLResponse)
+async def post_send_email(
+    request: Request,
+    recipient: str = Form(...),
+    subject: str = Form(...),
+    content: str = Form(...)
+):
+    # Per ora stampa nel terminale o log — sostituirai con salvataggio nel DB
+    print("EMAIL INVIATA:")
+    print(f"Destinatario: {recipient}")
+    print(f"Oggetto: {subject}")
+    print(f"Contenuto: {content}")
+
+    # In futuro: salva email nel database, triggera classificatore spam, ecc.
+
+    # Esempio di risposta: mostra messaggio di successo
+    return RedirectResponse(url="/inbox?sent=true", status_code=303)
 
 
 @router.get("/sent", response_class=HTMLResponse)

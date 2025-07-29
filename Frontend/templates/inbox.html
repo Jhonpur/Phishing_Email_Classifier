@@ -95,4 +95,17 @@
 
   </div>
 </div>
+
+{% if sent %}
+<script>
+  Swal.fire({
+    icon: 'success',
+    title: 'Email inviata!',
+    text: 'La tua email è stata inviata con successo.',
+    confirmButtonColor: '#3085d6',
+    confirmButtonText: 'OK'
+  });
+</script>
+{% endif %}
+
 {% endblock %}
