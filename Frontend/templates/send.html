@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <div class="row g-0">
+    
+    <!-- FORM INVIO EMAIL -->
+    <div class="col-12">
+      <div class="p-4">
+        
+        <!-- Header -->
+        <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+          <i class="bi bi-envelope-plus me-2" style="font-size: 1.5rem;"></i>
+          <h3 class="mb-0">Invia Email</h3>
+        </div>
+
+        <!-- Success/Error Messages -->
+        {% if success %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="bi bi-check-circle me-2"></i>
+          {{ success }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          {{ error }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+
+        <!-- Form -->
+        <div class="row justify-content-center">
+          <div class="col-12 col-lg-8">
+            <div class="card shadow-sm">
+              <div class="card-body">
+                <form method="POST" action="/send">
+                  
+                  <!-- Destinatario -->
+                  <div class="mb-3">
+                    <label for="recipient" class="form-label fw-semibold">
+                      <i class="bi bi-person me-1"></i>A:
+                    </label>
+                    <input type="email" 
+                           class="form-control form-control-lg" 
+                           id="recipient" 
+                           name="recipient" 
+                           placeholder="destinatario@example.com" 
+                           required
+                           value="{{ recipient or '' }}">
+                  </div>
+
+                  <!-- Oggetto -->
+                  <div class="mb-3">
+                    <label for="subject" class="form-label fw-semibold">
+                      <i class="bi bi-tag me-1"></i>Oggetto:
+                    </label>
+                    <input type="text" 
+                           class="form-control form-control-lg" 
+                           id="subject" 
+                           name="subject" 
+                           placeholder="Oggetto dell'email" 
+                           required
+                           value="{{ subject or '' }}">
+                  </div>
+
+                  <!-- Contenuto -->
+                  <div class="mb-4">
+                    <label for="content" class="form-label fw-semibold">
+                      <i class="bi bi-pencil me-1"></i>Messaggio:
+                    </label>
+                    <textarea class="form-control" 
+                              id="content" 
+                              name="content" 
+                              rows="10" 
+                              placeholder="Scrivi qui il tuo messaggio..." 
+                              required>{{ content or '' }}</textarea>
+                  </div>
+
+                  <!-- Pulsanti -->
+                  <div class="d-flex justify-content-between align-items-center">
+                    <a href="/inbox" class="btn btn-outline-secondary">
+                      <i class="bi bi-arrow-left me-2"></i>Annulla
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                      <i class="bi bi-send me-2"></i>Invia Email
+                    </button>
+                  </div>
+
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
