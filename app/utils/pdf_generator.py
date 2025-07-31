@@ -66,6 +66,8 @@ class PDFReport(FPDF):
         self.image(buffer, x=self.l_margin, w=self.w - 2 * self.l_margin)
         buffer.close()
 
+
+
 #funzione che genera il report pdf 
 def generate_report(db: Session, user_id: int) -> bytes:
     logo_path = r"C:\\Users\\ange.kadjafomekon\\OneDrive - AGM Solutions\\Desktop\\git_locale\\Phishing_Email_Classifier\\app\utils\\agm_solutions.png"
@@ -141,12 +143,18 @@ def graph_report_user(num_tot_mail_spam,num_tot_mail_riceived):
     return fig
 
 
-#grafico a torta per il report che mostra i tipi di spam
+#funzione per generare il grafico a torta per il report che mostra i tipi di spam
 def graph_spam_reason_user(db: Session, user_id: int):
     spam =  get_spam_emails_by_user(db, user_id) # ottengo tutte le mail spam dell'utente
     spam_reasons = []
     for email in spam:
-       spam_reasons.extend(email.spam_reason) if email.spam_reason else None # aggiungo i motivi di spam alla lista spam_reasons
+       if email.spam_reason and len(email.spam_reason) > 1:
+            spam_reasons.extend(email.spam_reason)      
+       elif email.spam_reason and len(email.spam_reason) == 1:
+            spam_reasons.append(email.spam_reason)
+       else:
+           spam_reasons.append("Motivo di spam sconosciuto") # se non ci sono motivi di spam, aggiungo un messaggio predefinito
+       #spam_reasons.extend(email.spam_reason) if email.spam_reason else None # aggiungo i motivi di spam alla lista spam_reasons
 
     # Contare le occorrenze di ogni motivo di spam
     reason_counts = pd.Series(spam_reasons).value_counts()
