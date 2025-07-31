@@ -18,8 +18,8 @@ def sep():
 
 def scansiona_spam():
     num = rd.randint(0,1)
-    return {'is_spam': num
-            , 'spam_probability': rd.randint(0,100) if num == 1 else 0, # Simula una probabilità di spam casuale, 
+    return {'is_spam': num,
+             'spam_probability': rd.randint(0,100) if num == 1 else 0, # Simula una probabilità di spam casuale, 
             'spam_reason': ["phishing","link malevole","marketing agressivo"] if num == 1 else None # Simula una probabilità di spam casuale e un motivo opzionale
     } 
 
