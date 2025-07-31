@@ -62,7 +62,7 @@ def extract_features(df):
 
     return df
 
-def predict_spam(subject, body, model_path='spam_classifier_pipeline.joblib'):
+def predict_spam(subject, body, model_path='predicter/spam_classifier_pipeline.joblib'):
 
     data = pd.DataFrame([{'subject': subject, 'body': body}])
 
@@ -101,15 +101,15 @@ def classify_spam_reason(subject, body):
 
     return reasons if reasons else ['Nessuna causa specifica identificata']
 
-if __name__ == '__main__':
-    body = "I want to steal all your money and password"
-    subject = "Send me your money"
-    path = "predicter/spam_classifier_pipeline.joblib"
-    result = predict_spam(subject, body, path)
-    print(result)
+# if __name__ == '__main__':
+#     body = "I want to steal all your money and password"
+#     subject = "Send me your money"
+#     path = "predicter/spam_classifier_pipeline.joblib"
+#     result = predict_spam(subject, body, path)
+#     print(result)
 
-    body = "Today we have a meeting at 13:00 with teams"
-    subject = "Today's meeting"
-    path = "predicter/spam_classifier_pipeline.joblib"
-    result = predict_spam(subject, body, path)
-    print(result)
+#     body = "Today we have a meeting at 13:00 with teams"
+#     subject = "Today's meeting"
+#     path = "predicter/spam_classifier_pipeline.joblib"
+#     result = predict_spam(subject, body, path)
+#     print(result)
