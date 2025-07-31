@@ -104,7 +104,7 @@ def get_email_response(db: Session, email_id: int):
 
 
 #funzione per ottenere tutte le mail inviate da un utente
-def get_emails_by_user(db: Session, user_id: int):
+def get_emails_sent_by_user(db: Session, user_id: int):
     return db.query(Email).filter(Email.utente_id_sorgente == user_id).all()
 
 #funzione per segnare una mail come letta(mail ricevuta)
