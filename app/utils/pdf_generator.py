@@ -88,6 +88,7 @@ def generate_report(db: Session, user_id: int) -> bytes:
 
     # grafico
     graph_report = graph_report_user(num_tot_mail_spam,num_tot_mail_riceived)
+    graph_report_spam = graph_spam_reason_user(db, user_id)
     
 
     pdf.add_text_grasetto(f"NUMERO DI MAIL RICEVUTE :")
@@ -112,6 +113,10 @@ def generate_report(db: Session, user_id: int) -> bytes:
     pdf.add_image_plot(graph_report)# Ajoute le graphique au PDF
     plt.close(graph_report)    
 
+
+    pdf.add_image_plot(graph_report_spam)# Ajoute le graphique au PDF
+    plt.close(graph_report_spam)
+
     return pdf.output(dest='S')        
 
 
@@ -132,5 +137,26 @@ def graph_report_user(num_tot_mail_spam,num_tot_mail_riceived):
     ax.set_ylabel("Quantità")
     plt.xticks(rotation=25)
     ax.grid(True)
+
+    return fig
+
+
+#grafico a torta per il report che mostra i tipi di spam
+def graph_spam_reason_user(db: Session, user_id: int):
+    spam =  get_spam_emails_by_user(db, user_id) # ottengo tutte le mail spam dell'utente
+    spam_reasons = []
+    for email in spam:
+       spam_reasons.extend(email.spam_reason) if email.spam_reason else None # aggiungo i motivi di spam alla lista spam_reasons
+
+    # Contare le occorrenze di ogni motivo di spam
+    reason_counts = pd.Series(spam_reasons).value_counts()
+
+    # Creare il grafico a torta
+    fig, ax = plt.subplots()
+    reason_counts.plot(kind='pie', autopct='%1.1f%%', ax=ax, startangle=90, legend=False)
+    ax.set_ylabel('')  # Rimuovere l'etichetta dell'asse y
+    ax.set_title('Motivi di Spam per l\'Utente')
+    plt.tight_layout()  # Ottimizza il layout per evitare sovrapposizioni
+
 
     return fig

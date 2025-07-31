@@ -18,7 +18,10 @@ def sep():
 
 def scansiona_spam():
     num = rd.randint(0,1)
-    return num    
+    return {'is_spam': num
+            , 'spam_probability': rd.randint(0,100) if num == 1 else 0, # Simula una probabilità di spam casuale, 
+            'spam_reason': ["phishing","link malevole","marketing agressivo"] if num == 1 else None # Simula una probabilità di spam casuale e un motivo opzionale
+    } 
 
     
 
@@ -47,24 +50,29 @@ def main():
     sep()
 
     # Crea una email da Mario ad Anna
+    dict1 = scansiona_spam() # Simula la scansione per spam
     email_schema1 = EmailCreate(
         email_sorgente=user1.email,
         email_destinatario=user2.email,
         descrizione="Ciao lore, come stai?",
         oggetto="Saluti",
         data=datetime.now(timezone.utc),
-        stato_spam = scansiona_spam()
+        #stato_spam = dict['is_spam'],
+        #spam_probability = dict['spam_probability'],
+        #spam_reason = dict['spam_reason'],
     )
 
+    dict2 = scansiona_spam() # Simula la scansione per spam
     email_schema2 = EmailCreate(
         email_sorgente=user2.email,
         email_destinatario=user1.email,
         descrizione="bene ange e tu ?",
         email_id_risposta = 1, # risposta alla prim mail
         data=datetime.now(timezone.utc),
-        stato_spam = scansiona_spam()
+        #stato_spam = scansiona_spam()
     )
 
+    dict3 = scansiona_spam() # Simula la scansione per spam
     email_schema3 = EmailCreate(
         email_sorgente=user1.email,
         email_destinatario=user2.email,
@@ -72,64 +80,69 @@ def main():
         cosa ne pensi?""",
         email_id_risposta = 2, # risposta alla seconda  mail
         data=datetime.now(timezone.utc),
-        stato_spam = scansiona_spam()
+        #stato_spam = scansiona_spam()
     )
 
+    dict4 = scansiona_spam() # Simula la scansione per spam
     email_schema4 = EmailCreate(
         email_sorgente=user2.email,
         email_destinatario=user1.email,
         descrizione="""ah buona idea. ne parliamo intorno a un sprizt? domani dopo il lavoro a porta nuova""",
         email_id_risposta = 3, # risposta alla terza mail
         data=datetime.now(timezone.utc),
-        stato_spam = scansiona_spam()
+        #stato_spam = scansiona_spam()
     )
 
+    dict5 = scansiona_spam() # Simula la scansione per spam
     email_schema5 = EmailCreate(
         email_sorgente=user1.email,
         email_destinatario=user2.email,
         descrizione="""ok . vabbin""",
         email_id_risposta = 4, # risposta alla quarta mail
         data=datetime.now(timezone.utc),
-        stato_spam = scansiona_spam()
+        #stato_spam = scansiona_spam()
     )
 
-    email1 = create_email_with_user_relation(db, user_id_sorgente = get_user_by_email(db,email_schema1.email_sorgente).id,user_id_destinatario = get_user_by_email(db,email_schema1.email_destinatario).id,**email_schema1.model_dump())
-    email2 = create_email_with_user_relation(db, user_id_sorgente = get_user_by_email(db,email_schema2.email_sorgente).id,user_id_destinatario = get_user_by_email(db,email_schema2.email_destinatario).id,**email_schema2.model_dump())
-    email3 = create_email_with_user_relation(db, user_id_sorgente = get_user_by_email(db,email_schema3.email_sorgente).id,user_id_destinatario = get_user_by_email(db,email_schema3.email_destinatario).id,**email_schema3.model_dump())
-    email4 = create_email_with_user_relation(db, user_id_sorgente = get_user_by_email(db,email_schema4.email_sorgente).id,user_id_destinatario = get_user_by_email(db,email_schema4.email_destinatario).id,**email_schema4.model_dump())
-    email5 = create_email_with_user_relation(db, user_id_sorgente = get_user_by_email(db,email_schema5.email_sorgente).id,user_id_destinatario = get_user_by_email(db,email_schema5.email_destinatario).id,**email_schema5.model_dump())
+    email1 = create_email_with_user_relation(db, user_id_sorgente = get_user_by_email(db,email_schema1.email_sorgente).id,user_id_destinatario = get_user_by_email(db,email_schema1.email_destinatario).id,**email_schema1.model_dump(),stato_spam= dict1['is_spam'], spam_probability=dict1['spam_probability'], spam_reason=dict1['spam_reason'])
+    email2 = create_email_with_user_relation(db, user_id_sorgente = get_user_by_email(db,email_schema2.email_sorgente).id,user_id_destinatario = get_user_by_email(db,email_schema2.email_destinatario).id,**email_schema2.model_dump(),stato_spam= dict2['is_spam'], spam_probability=dict2['spam_probability'], spam_reason=dict2['spam_reason'])
+    email3 = create_email_with_user_relation(db, user_id_sorgente = get_user_by_email(db,email_schema3.email_sorgente).id,user_id_destinatario = get_user_by_email(db,email_schema3.email_destinatario).id,**email_schema3.model_dump(),stato_spam= dict3['is_spam'], spam_probability=dict3['spam_probability'], spam_reason=dict3['spam_reason'])
+    email4 = create_email_with_user_relation(db, user_id_sorgente = get_user_by_email(db,email_schema4.email_sorgente).id,user_id_destinatario = get_user_by_email(db,email_schema4.email_destinatario).id,**email_schema4.model_dump(),stato_spam= dict4['is_spam'], spam_probability=dict4['spam_probability'], spam_reason=dict4['spam_reason'])
+    email5 = create_email_with_user_relation(db, user_id_sorgente = get_user_by_email(db,email_schema5.email_sorgente).id,user_id_destinatario = get_user_by_email(db,email_schema5.email_destinatario).id,**email_schema5.model_dump(),stato_spam= dict5['is_spam'], spam_probability=dict5['spam_probability'], spam_reason=dict5['spam_reason'])
 
 
+    dict6 = scansiona_spam() # Simula la scansione per spam
     email_schema6 = EmailCreate(
         email_sorgente=user1.email,
         email_destinatario=user3.email,
         descrizione="""il capibarra è l'animale piu simpatico al mondo . non ha nessun predattore e mangia solo erba """,
         #email_id_risposta = 4, # risposta alla quarta mail
         data=datetime.now(timezone.utc),
-        stato_spam = scansiona_spam()
+        #stato_spam = scansiona_spam()
     )
 
+    dict7 = scansiona_spam() # Simula la scansione per spam
     email_schema7 = EmailCreate(
         email_sorgente=user2.email,
         email_destinatario=user3.email,
         descrizione="""gentile gabri, mi serve il tuo curriculum per preparare il collocquio conosciutivo. grazie per l'attenzione""",
         #email_id_risposta = 4, # risposta alla quarta mail
         data=datetime.now(timezone.utc),
-        stato_spam = scansiona_spam()
+        #stato_spam = scansiona_spam()
     )
-
+ 
+    dict8 = scansiona_spam() # Simula la scansione per spam
     email_schema8 = EmailCreate(
         email_sorgente=user3.email,
         email_destinatario=user1.email,
         descrizione="""salve ange. perfavore mi puoi mandare l'indirizzo della cena di sta sera? grazie""",
         #email_id_risposta = 4, # risposta alla quarta mail
         data=datetime.now(timezone.utc),
-        stato_spam = scansiona_spam()
+        #stato_spam = scansiona_spam()
     )
 
-    email6 = create_email_with_user_relation(db, user_id_sorgente = get_user_by_email(db,email_schema6.email_sorgente).id,user_id_destinatario = get_user_by_email(db,email_schema6.email_destinatario).id,**email_schema6.model_dump())
-    email7 = create_email_with_user_relation(db, user_id_sorgente = get_user_by_email(db,email_schema7.email_sorgente).id,user_id_destinatario = get_user_by_email(db,email_schema7.email_destinatario).id,**email_schema7.model_dump())
-    email8 = create_email_with_user_relation(db, user_id_sorgente = get_user_by_email(db,email_schema8.email_sorgente).id,user_id_destinatario = get_user_by_email(db,email_schema8.email_destinatario).id,**email_schema8.model_dump())
+    email6 = create_email_with_user_relation(db, user_id_sorgente = get_user_by_email(db,email_schema6.email_sorgente).id,user_id_destinatario = get_user_by_email(db,email_schema6.email_destinatario).id,**email_schema6.model_dump(),stato_spam= dict6['is_spam'], spam_probability=dict6['spam_probability'], spam_reason=dict6['spam_reason'])
+    email7 = create_email_with_user_relation(db, user_id_sorgente = get_user_by_email(db,email_schema7.email_sorgente).id,user_id_destinatario = get_user_by_email(db,email_schema7.email_destinatario).id,**email_schema7.model_dump(),stato_spam= dict7['is_spam'], spam_probability=dict7['spam_probability'], spam_reason=dict7['spam_reason'])
+    email8 = create_email_with_user_relation(db, user_id_sorgente = get_user_by_email(db,email_schema8.email_sorgente).id,user_id_destinatario = get_user_by_email(db,email_schema8.email_destinatario).id,**email_schema8.model_dump(),stato_spam= dict8['is_spam'], spam_probability=dict8['spam_probability'], spam_reason=dict8['spam_reason'])
 
 
     print("Email inviata:", email1,email2,email3,email4,email5,email6,email7,email8)

@@ -3,8 +3,11 @@
 from sqlalchemy.orm import Session
 from .models import User, Email, UserEmail
 from datetime import datetime, timezone
+#import random as rd  # Solo per il test, da rimuovere in produzione
 #from datetime import datetime
  
+
+
 # USER CRUD
 
 # funzione per creare un utente
@@ -55,6 +58,8 @@ def create_email(
     data: datetime = None,
     url: bool = False,
     stato_spam: bool = False,
+    spam_probability: float = 0.0, # probabilità che la mail sia spam, da 0 a 100
+    spam_reason: str = None, # motivo per cui la mail è stata classificata
     email_id_risposta: int = None
 ):
     email = Email(
@@ -67,6 +72,8 @@ def create_email(
         data=data,
         url=url,
         stato_spam=stato_spam,
+        spam_probability=spam_probability,
+        spam_reason=spam_reason,
         email_id_risposta=email_id_risposta
     )
     db.add(email)
@@ -233,6 +240,8 @@ def create_email_with_user_relation(
     data: datetime = None,
     url: bool = False,
     stato_spam: bool = False,
+    spam_probability: float = 0.0, # probabilità che la mail sia spam, da 0 a 100
+    spam_reason: str = None, # motivo per cui la mail è stata classificata
     email_id_risposta: int = None
 ):
     email = create_email(
@@ -246,6 +255,8 @@ def create_email_with_user_relation(
         data=data, 
         url=url, 
         stato_spam=stato_spam, 
+        spam_probability=spam_probability,
+        spam_reason=spam_reason,
         email_id_risposta=email_id_risposta
     )
     
