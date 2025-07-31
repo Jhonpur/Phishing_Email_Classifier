@@ -73,20 +73,43 @@ def predict_spam(subject, body, model_path='spam_classifier_pipeline.joblib'):
     prediction = model.predict(features)[0]
     spam_proba = model.predict_proba(features)[0][1]
 
+    reasons = ''
+
+    if bool(prediction) is True:
+        reasons = classify_spam_reason(subject, body)
+
     return {
         'is_spam': bool(prediction),
-        'spam_probability': round(spam_proba, 4)
+        'spam_probability': round(spam_proba, 4),
+        'spam_reasons': reasons
     }
 
-# if __name__ == '__main__':
-#     body = "I want to steal all your money"
-#     subject = "Send me your money"
-#     path = "predicter/spam_classifier_pipeline.joblib"
-#     result = predict_spam(subject, body, path)
-#     print(result)
+def classify_spam_reason(subject, body):
+    text = (subject + ' ' + body).lower()
+    reasons = []
 
-#     body = "Today we have a meeting at 13:00 with teams"
-#     subject = "Today's meeting"
-#     path = "predicter/spam_classifier_pipeline.joblib"
-#     result = predict_spam(subject, body, path)
-#     print(result)
+    if re.search(r'\b(bank|account|iban|card|login|password|verify|otp|credentials)\b', text):
+        reasons.append('Dati sensibili')
+    if re.search(r'http[s]?://', text):
+        reasons.append('Contiene link')
+    if re.search(r'http[s]?://\d{1,3}(?:\.\d{1,3}){3}', text):
+        reasons.append('Link a indirizzo IP')
+    if re.search(r'http[s]?://(?:bit\.ly|tinyurl\.com|freehosting)', text):
+        reasons.append('Dominio sospetto')
+    if re.search(r'\b(gratis|free|win|bitcoin|investment|only today|money|discount)\b', text):
+        reasons.append('Marketing aggressivo')
+
+    return reasons if reasons else ['Nessuna causa specifica identificata']
+
+if __name__ == '__main__':
+    body = "I want to steal all your money and password"
+    subject = "Send me your money"
+    path = "predicter/spam_classifier_pipeline.joblib"
+    result = predict_spam(subject, body, path)
+    print(result)
+
+    body = "Today we have a meeting at 13:00 with teams"
+    subject = "Today's meeting"
+    path = "predicter/spam_classifier_pipeline.joblib"
+    result = predict_spam(subject, body, path)
+    print(result)
