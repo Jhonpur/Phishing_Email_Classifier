@@ -14,6 +14,14 @@ from app.database.db import engine, Base, SessionLocal
 from app.database import crud, models, schemas
 
 
+def scansiona_spam():
+    num = rd.randint(0,1)
+    return {'is_spam': num,
+             'spam_probability': rd.randint(0,100) if num == 1 else 0, # Simula una probabilità di spam casuale, 
+            'spam_reason': ["phishing","link malevole","marketing agressivo"] if num == 1 else None # Simula una probabilità di spam casuale e un motivo opzionale
+    } 
+
+
 Base.metadata.create_all(bind=engine)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 db = SessionLocal() 
@@ -27,8 +35,8 @@ def lire_racine():
     return {"message": "Bienvenue !"}
 
 """quando ricevo una mail, scansiono il messaggio per determinare se è spam oppure no."""
-def scansiona_spam():
-   return  rd.randint(0,1)
+"""def scansiona_spam():
+   return  rd.randint(0,1)"""
 
 
 
@@ -69,6 +77,11 @@ def send_email(email: schemas.EmailCreate):
     if not utente_sorgente or not utente_destinatario:
         raise HTTPException(status_code=404, detail="Sender or recipient not found") # oppure si ritorna un messaggio 
 
+    
+
+    dict = scansiona_spam() # Simula la scansione per spam
+    
+
     # Crea l'email
     email_obj = crud.create_email_with_user_relation(
         db=db,
@@ -79,7 +92,9 @@ def send_email(email: schemas.EmailCreate):
         descrizione=email.descrizione,
         oggetto=email.oggetto,
         data= datetime.now(timezone.utc),
-        stato_spam = scansiona_spam()
+        stato_spam = dict['is_spam'],
+        spam_probability = dict['spam_probability'],
+        spam_reason = dict['spam_reason'],
     )
 
     return schemas.EmailOut.model_validate(email_obj) # non ancora sicuro di quello che deve ritornare se un messaggio o altra cosa
@@ -135,6 +150,21 @@ def get_trash(user_mail: str):
 
     emails = crud.get_deleted_emails_by_user(db,user.id)
     return [schemas.EmailOut.model_validate(email) for email in emails]
+
+
+#end point per cancellare definitivamente una mail
+@app.post("/user/delete/definitively/", response_model=schemas.EmailOut)
+def delete_email_definitively(user_mail: str, email_id: int):
+    user = crud.get_user_by_email(db, user_mail)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    email = crud.get_email_by_id(db, email_id)
+    if not email or email.utente_id_destinatario != user.id:
+        raise HTTPException(status_code=404, detail="Email not found")
+
+    crud.delete_user_email(db, user.id, email.id)
+    return schemas.EmailOut.model_validate(email)  
 
 
 #end point per eliminare una mail

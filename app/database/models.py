@@ -1,6 +1,6 @@
 """definizione modelli per ORM"""
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Text
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Text, JSON
 from sqlalchemy.orm import relationship
 from app.database.db import Base
 from datetime import datetime, timezone
@@ -47,7 +47,11 @@ class Email(Base): # Definizione del modello Email per l'ORM
     data = Column(DateTime) # data di invio della mail, con timezone UTC
 
     url = Column(Boolean, default=False) # indica se la mail contiene un URL nel body DOPO ANALISI
-    stato_spam = Column(Boolean, default=False) # indica se la mail è stata classificata come spam DOPO ANALISI
+    stato_spam = Column(Boolean, default=False) # indica se la mail è stata classificata come spam o no DOPO ANALISI
+
+    spam_probability = Column(Integer, default=0) # probabilità che la mail sia spam, da 0 a 100 DOPO ANALISI
+    spam_reason = Column(JSON, nullable=True) # motivo per cui la mail è stata classificata come spam, se presente DOPO ANALISI
+
 
 
     # email_id_risposta permette di collegare una mail alla mail a cui si sta rispondendo
@@ -80,7 +84,7 @@ class UserEmail(Base): # Modello per la relazione tra User ed Email
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     email_id = Column(Integer, ForeignKey("emails.id"), nullable=False)
     stato_read = Column(Boolean, default=False) # indica se la mail è stata letta dal destinatario
-    stato_delete = Column(Boolean, default=False) # indica se la mail è stata eliminata dal destinatario o mittente
+    stato_delete = Column(Integer, default=0)   # 0: non cancellato, 1: cancellato, 2: cancellato definitivamente
 
 
     user = relationship("User", back_populates="user_emails")
