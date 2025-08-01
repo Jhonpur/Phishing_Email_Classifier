@@ -153,7 +153,7 @@ def graph_spam_reason_user(db: Session, user_id: int):
        elif email.spam_reason and len(email.spam_reason) == 1:
             spam_reasons.append(email.spam_reason)
        else:
-           spam_reasons.append("Motivo di spam sconosciuto") # se non ci sono motivi di spam, aggiungo un messaggio predefinito
+           spam_reasons.append("Altro") # se non ci sono motivi di spam, aggiungo un messaggio predefinito
        #spam_reasons.extend(email.spam_reason) if email.spam_reason else None # aggiungo i motivi di spam alla lista spam_reasons
 
     # Contare le occorrenze di ogni motivo di spam

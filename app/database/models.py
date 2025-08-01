@@ -84,7 +84,7 @@ class UserEmail(Base): # Modello per la relazione tra User ed Email
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     email_id = Column(Integer, ForeignKey("emails.id"), nullable=False)
     stato_read = Column(Boolean, default=False) # indica se la mail è stata letta dal destinatario
-    stato_delete = Column(Boolean, default=False) # indica se la mail è stata eliminata dal destinatario o mittente
+    stato_delete = Column(Integer, default=0)   # 0: non cancellato, 1: cancellato, 2: cancellato definitivamente
 
 
     user = relationship("User", back_populates="user_emails")
