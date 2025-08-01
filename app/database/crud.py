@@ -3,8 +3,11 @@
 from sqlalchemy.orm import Session
 from .models import User, Email, UserEmail
 from datetime import datetime, timezone
+#import random as rd  # Solo per il test, da rimuovere in produzione
 #from datetime import datetime
  
+
+
 # USER CRUD
 
 # funzione per creare un utente
@@ -55,6 +58,8 @@ def create_email(
     data: datetime = None,
     url: bool = False,
     stato_spam: bool = False,
+    spam_probability: float = 0.0, # probabilità che la mail sia spam, da 0 a 100
+    spam_reason: str = None, # motivo per cui la mail è stata classificata
     email_id_risposta: int = None
 ):
     email = Email(
@@ -67,6 +72,8 @@ def create_email(
         data=data,
         url=url,
         stato_spam=stato_spam,
+        spam_probability=spam_probability,
+        spam_reason=spam_reason,
         email_id_risposta=email_id_risposta
     )
     db.add(email)
@@ -74,9 +81,9 @@ def create_email(
     db.refresh(email)
     return email
 
-#funzione per ottenere tutte le mail ricevute da un utente
-def get_emails_by_user(db: Session, user_id: int):
-    return db.query(Email).filter(Email.utente_id_destinatario == user_id).all()
+#funzione per ottenere tutte le mail ricevute da un utente  <------
+def get_emails_receive_by_user(db: Session, user_id: int):
+    return db.query(Email).join(UserEmail).filter(UserEmail.user_id == user_id, UserEmail.stato_delete == 0,Email.utente_id_destinatario == user_id).all()
 
 
 #funzione che data un ID di email ritorna l'email
@@ -97,7 +104,7 @@ def get_email_response(db: Session, email_id: int):
 
 
 #funzione per ottenere tutte le mail inviate da un utente
-def get_emails_by_user(db: Session, user_id: int):
+def get_emails_sent_by_user(db: Session, user_id: int):
     return db.query(Email).filter(Email.utente_id_sorgente == user_id).all()
 
 #funzione per segnare una mail come letta(mail ricevuta)
@@ -172,21 +179,21 @@ def update_user_email_read_status(db: Session, user_id: int, email_id: int):
         db.refresh(user_email)
     return user_email
 
-#funzione per cancellare  una mail per un utente
+#funzione per cancellare  una mail per un utente però non definitivamente. la mette nel cestino
 def update_user_email_delete_status(db: Session, user_id: int, email_id: int):
     user_email = db.query(UserEmail).filter(UserEmail.user_id == user_id, UserEmail.email_id == email_id).first()
     if user_email:
-        user_email.stato_delete = True
+        user_email.stato_delete = 1 # 1: cancellato ma non definitivamente
         db.commit()
         db.refresh(user_email)
     return user_email
 
 
-#funzione per per ripristinare una mail cancellata per un utente
+#funzione per per ripristinare una mail cancellata  ma non definitivamente per un utente
 def restore_user_email(db: Session, user_id: int, email_id: int):
-    user_email = db.query(UserEmail).filter(UserEmail.user_id == user_id, UserEmail.email_id == email_id).first()
+    user_email = db.query(UserEmail).filter(UserEmail.user_id == user_id, UserEmail.email_id == email_id, UserEmail.stato_delete == 1).first()
     if user_email:
-        user_email.stato_delete = False
+        user_email.stato_delete = 0 # 0: non cancellato
         db.commit()
         db.refresh(user_email)
     return user_email
@@ -207,12 +214,20 @@ def get_user_email_delete_status(db: Session, user_id: int, email_id: int):
         return user_email.stato_delete
     return None
 
-#funzione per ottener tutte le mail cancellate da un utente
+#funzione per ottener tutte le mail cancellate da un utente ma non definitivamente, quindi le mail nel cestino(stato_delete = 1)
 #ritorna  una lista di oggetti Email
 def get_deleted_emails_by_user(db: Session, user_id: int):
-    return db.query(Email).join(UserEmail).filter(UserEmail.user_id == user_id, UserEmail.stato_delete == True).all()
+    return db.query(Email).join(UserEmail).filter(UserEmail.user_id == user_id, UserEmail.stato_delete == 1).all()
 
 
+#funzione per cancellare definitivamente una mail per un utente
+def delete_user_emai_definitivelyl(db: Session, user_id: int, email_id: int):
+    user_email = db.query(UserEmail).filter(UserEmail.user_id == user_id, UserEmail.email_id == email_id).first()
+    if user_email:
+        user_email.stato_delete = 2 # cancellato definitivamente
+        db.commit()
+        db.refresh(user_email)
+    return user_email
 
 #funzione per ottenere tutte le mail non lette da un utente
 #ritorna una lista di oggetti Email
@@ -233,6 +248,8 @@ def create_email_with_user_relation(
     data: datetime = None,
     url: bool = False,
     stato_spam: bool = False,
+    spam_probability: float = 0.0, # probabilità che la mail sia spam, da 0 a 100
+    spam_reason: str = None, # motivo per cui la mail è stata classificata
     email_id_risposta: int = None
 ):
     email = create_email(
@@ -246,6 +263,8 @@ def create_email_with_user_relation(
         data=data, 
         url=url, 
         stato_spam=stato_spam, 
+        spam_probability=spam_probability,
+        spam_reason=spam_reason,
         email_id_risposta=email_id_risposta
     )
     

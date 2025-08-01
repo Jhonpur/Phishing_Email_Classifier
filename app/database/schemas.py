@@ -32,7 +32,7 @@ class EmailCreate(BaseModel): # Definizione dello schema per la creazione di un'
     oggetto: Optional[str] = Field(default=None,min_length=0, description= "oggetto della mail")
     email_id_risposta: Optional[int] = None # ID della mail a cui si sta rispondendo, se presente
     data: datetime # è la data usando datetime.now(timezone.utc) , momento in cui viene creata l'email
-    stato_spam: bool
+    #stato_spam: bool
 
     
 
@@ -44,6 +44,10 @@ class EmailOut(EmailCreate): # Definizione dello schema per l'output di un'email
     oggetto: Optional[str] = None
     data: datetime
     stato_spam: Optional[bool] = False #da modificare dopo.
+    spam_probability: Optional[float] = 0.0 # probabilità che la mail sia spam, da 0 a 100
+
+    #deve essere una lista di motivi per cui la mail è stata classificata come spam, se presente
+    spam_reason: Optional[list[str]] = None # motivo per cui la mail è stata classificata come spam, se presente
     email_id_risposta: Optional[int] = None
 
     class Config:
