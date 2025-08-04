@@ -1,13 +1,11 @@
 from fastapi import APIRouter, Form, Request, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlalchemy.orm import Session
-from datetime import datetime
-
+from datetime import datetime, timezone
 from predict_spam import predict_spam  # Your spam detection function
 from app import crud  # Your DB access layer
 from app.database import get_db  # Dependency to get a DB session
 from app.database.db import engine, Base, SessionLocal
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 from app.database import crud, models, schemas
 
 Base.metadata.create_all(bind=engine)
@@ -15,16 +13,17 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 db = SessionLocal() 
 router = APIRouter()
 
-# MANCA IL REASON
-
 @router.post("/send", response_class=HTMLResponse)
-async def post_send_email(  # MI MANCA LA MAIL SORGENTE
-    request: Request,
-    recipient: str = Form(...),
-    subject: str = Form(...),
-    content: str = Form(...)
-    # db: Session = Depends(get_db)
-):
+async def post_send_email(request: Request,
+                          recipient: str = Form(...),
+                          subject: str = Form(...),
+                          content: str = Form(...),
+                          db: Session = Depends(get_db)):
+    
+    mittente = request.query_params.get("user_mail")
+    if not mittente:
+        return HTMLResponse("Mittente mancante nell'URL", status_code=400)
+
     # Log the incoming email
     print("EMAIL INVIATA:")
     print(f"Mittente: {mittente}")  # MANCANTE
@@ -35,12 +34,15 @@ async def post_send_email(  # MI MANCA LA MAIL SORGENTE
     # Check for spam
     spam_result = predict_spam(subject, content)
     is_spam = spam_result['is_spam']
+    spam_reasons = spam_result['spam_reasons']
+    spam_probability = spam_result['spam_probability']
+    url = spam_result['contains_url']
 
     # Prendo id del destinatario
     utente_sorgente = crud.get_user_by_email(db, mittente)
     utente_destinario = crud.get_user_by_email(db, recipient)
 
-    if not sender_user or not recipient_user:
+    if not utente_sorgente or not utente_destinario:
         return HTMLResponse(content="Invalid sender or recipient", status_code=400)
 
     # Save the email to the DB
@@ -53,8 +55,10 @@ async def post_send_email(  # MI MANCA LA MAIL SORGENTE
         descrizione=content,
         oggetto=subject,
         data=datetime.now(timezone.utc),
-        stato_spam=is_spam
+        url=url,
+        stato_spam=is_spam,
+        spam_reason=spam_reasons,
+        spam_probability=spam_probability
     )
 
-    # 4. Redirect back to inbox with success notice
     return RedirectResponse(url="/inbox?sent=true", status_code=303)
