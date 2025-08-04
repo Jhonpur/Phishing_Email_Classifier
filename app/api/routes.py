@@ -1,10 +1,12 @@
 from fastapi import APIRouter, HTTPException, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse,StreamingResponse
 from fastapi.templating import Jinja2Templates
-from datetime import datetime, timedelta
-from app.database.db import engine, Base, SessionLocal
 from sqlalchemy.orm import sessionmaker
+from app.database.db import engine, Base, SessionLocal
 from app.database import crud, models, schemas
+from app.utils.pdf_generator import generate_report
+from datetime import datetime, timedelta
+from io import BytesIO
 
 router = APIRouter()
 templates = Jinja2Templates(directory="Frontend/templates")
@@ -280,3 +282,19 @@ async def delete_forever_email(
 
     # Dopo la cancellazione, torna al cestino
     return RedirectResponse(url=f"/trash?user_mail={user_mail}", status_code=303)
+
+
+@router.get("/report_pdf", response_class=StreamingResponse)
+def report_category(user_mail:str):
+    user = crud.get_user_by_email(db, user_mail)
+    #user = crud.get_user_by_id(db, user_id.id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    try:
+        pdf_bytes = generate_report(db, user.id)
+        return StreamingResponse(BytesIO(pdf_bytes),
+                                 media_type="application/pdf",
+                                 headers={"Content-Disposition": f"attachment; filename=rapport_categorie_{user.nome}.pdf"})
+    except Exception as e:
+        print("Errore:", e)
+        raise HTTPException(status_code=404, detail=str(e))
