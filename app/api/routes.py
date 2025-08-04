@@ -1,81 +1,17 @@
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from datetime import datetime, timedelta
+from app.database.db import engine, Base, SessionLocal
+from sqlalchemy.orm import sessionmaker
+from app.database import crud, models, schemas
 
 router = APIRouter()
 templates = Jinja2Templates(directory="Frontend/templates")
 
-# Dati per simulare email dal database
-MOCK_EMAILS = [
-    {
-        "id": 1,
-        "sender": "noreply@banca-intesa.com",
-        "subject": "Benvenuto in AGM Email",
-        "preview": "Grazie per aver scelto il nostro servizio email. Questa è la tua inbox...",
-        "date": datetime.now(),
-        "content": "Gentile cliente, la informiamo che il suo conto è stato temporaneamente bloccato. Clicchi sul link per riattivarlo immediatamente.",
-        "is_read": False
-    },
-    {
-        "id": 2,
-        "sender": "sistema@agmemail.com",
-        "subject": "Notifica di sistema",
-        "preview": "Il tuo account è stato configurato correttamente. Ora puoi...",
-        "date": datetime.now() - timedelta(days=1),
-        "content": "Il tuo account AGM Email è stato configurato correttamente. Puoi iniziare a usare tutte le funzionalità.",
-        "is_read": True
-    },
-    {
-        "id": 3,
-        "sender": "privacy@agmemail.com",
-        "subject": "Aggiornamento privacy",
-        "preview": "Abbiamo aggiornato la nostra informativa sulla privacy...",
-        "date": datetime.now() - timedelta(days=2),
-        "content": "La nostra informativa sulla privacy è stata aggiornata per garantire maggiore trasparenza sui dati che raccogliamo.",
-        "is_read": True
-    },
-    {
-        "id": 4,
-        "sender": "paypal-security@pp-verify.com",
-        "subject": "Verifica urgente account PayPal",
-        "preview": "Il tuo account PayPal necessita di verifica immediata per evitare...",
-        "date": datetime.now() - timedelta(hours=3),
-        "content": "ATTENZIONE: Il tuo account PayPal verrà sospeso tra 24 ore se non verifichi immediatamente la tua identità cliccando qui.",
-        "is_read": False
-    },
-    {
-        "id": 5,
-        "sender": "newsletter@techcrunch.com",
-        "subject": "Le ultime novità tech della settimana",
-        "preview": "Scopri le startup più innovative del momento e le ultime...",
-        "date": datetime.now() - timedelta(days=3),
-        "content": "Questa settimana nel mondo tech: nuove AI breakthrough, acquisizioni miliardarie e le startup da tenere d'occhio.",
-        "is_read": True
-    }
-]
-
-# Dati per email inviate
-MOCK_SENT_EMAILS = [
-    {
-        "id": 101,
-        "recipient": "cliente@example.com",
-        "subject": "Risposta alla tua richiesta",
-        "preview": "Grazie per averci contattato. In allegato trovi...",
-        "date": datetime.now() - timedelta(hours=2),
-        "content": "Gentile Cliente, grazie per la sua richiesta. In allegato trova la documentazione richiesta.",
-        "is_read": True
-    },
-    {
-        "id": 102,
-        "recipient": "team@agmemail.com",
-        "subject": "Meeting di domani",
-        "preview": "Ricordo a tutti il meeting di domani alle 10:00...",
-        "date": datetime.now() - timedelta(days=1),
-        "content": "Ciao team, ricordo a tutti il meeting di domani alle 10:00 in sala riunioni.",
-        "is_read": True
-    }
-]
+Base.metadata.create_all(bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+db = SessionLocal() 
 
 # Dati per spam
 MOCK_SPAM_EMAILS = [
@@ -89,74 +25,127 @@ MOCK_SPAM_EMAILS = [
         "is_read": False
     }
 ]
-
-# Dati per cestino
-MOCK_TRASH_EMAILS = [
-    {
-        "id": 301,
-        "sender": "old-newsletter@example.com",
-        "subject": "Newsletter vecchia",
-        "preview": "Contenuto di una newsletter eliminata...",
-        "date": datetime.now() - timedelta(days=7),
-        "content": "Questa è una newsletter che hai eliminato la settimana scorsa.",
-        "is_read": True
-    }
-]
+#from fastapi import FastAPI, HTTPException
+#from pydantic import BaseModel
+#from fastapi.responses import JSONResponse
+#app = FastAPI()
+# 
+#class LoginData(BaseModel):
+#    email: str
+#    password: str
+# 
+#@app.get("/", response_class=HTMLResponse)
+#def get_login(request: Request):
+#    return templates.TemplateResponse("login.html", {"request": request})
+#    
+## Endpoint API per il login
+#@app.post("/login")
+#def login(data: LoginData):
+#    if data.email == "admin@email.com" and data.password == "123":
+#        return {
+#            "token": "jwt_token_fake_123",
+#            "user": {
+#                "email": data.email,
+#                "name": "Admin"
+#            }
+#        }
+#    return JSONResponse(status_code=401, content={"detail": "Credenziali errate"})
 
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("base.html", {"request": request})
 
 
-def format_email_date(email_date):
-    now = datetime.now()
-    today = now.date()
-    yesterday = today - timedelta(days=1)
-    
-    if email_date.date() == today:
-        return email_date.strftime("%H:%M")
-    elif email_date.date() == yesterday:
-        return "Ieri"
-    else:
-        return email_date.strftime("%d/%m")
+def format_email_date(date):
+    today = datetime.today().date()
+    if date.date() == today:
+        return date.strftime("%H:%M")  # solo orario se è oggi
+    return date.strftime("%d/%m")      # altrimenti giorno/mese
 
 
 @router.get("/inbox", response_class=HTMLResponse)
-async def inbox(request: Request, email_id: int = None):
-    # Ordina email per data (più recenti prima)
-    sorted_emails = sorted(MOCK_EMAILS, key=lambda x: x["date"], reverse=True)
+async def inbox(request: Request, user_mail: str, selected_email_id: int = None):
+    user = crud.get_user_by_email(db, user_mail)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found") # oppure si ritorn un messagio
 
+    # Ottengo tutte le email ricevute
+    emails = user.received
+
+    # Prendiamo solo le mail che non hanno status delete = 1/2
+    emails = [email for email in emails if not crud.get_user_email_delete_status(db, user.id, email.id)]
+
+    # Ordina email per data (più recenti prima)
+    sorted_emails = sorted(emails, key=lambda x: x.data, reverse=True)
+
+    # Controllo stato per pop-up di conferma email inviata
     sent = request.query_params.get("sent") == "true"
+
+    # Controllo stato di eliminazione per visualizzazione email
     # Aggiungi date formattate
     for email in sorted_emails:
-        email["formatted_date"] = format_email_date(email["date"])
-    
+        email.formatted_date = format_email_date(email.data)
+        email.is_read = crud.get_user_email_read_status(db, user.id, email.id)
+        
+        # Aggiungi info extra da database a ogni email
+    #for email in sorted_emails:
+    #    email.formatted_date = format_email_date(email.data)
+    #    # Qui leggiamo dal database se la mail è letta
+    #    read_status = crud.get_user_email_read_status(db, user.id, email.id)
+    #    email.is_read = read_status  # puoi usare anche email.stato_read, ma meglio is_read per templat
+
     selected_email = None
-    if email_id:
-        selected_email = next((email for email in sorted_emails if email["id"] == email_id), None)
+    if selected_email_id:
+        selected_email = next((email for email in sorted_emails if email.id == selected_email_id), None)
         # Segna come letta se selezionata
         if selected_email:
-            selected_email["is_read"] = True
+            crud.update_user_email_read_status(db, user.id, selected_email.id)
     
     return templates.TemplateResponse("inbox.html", {
         "request": request,
         "emails": sorted_emails,
         "selected_email": selected_email,
-        "sent": sent
+        "sent": sent,
+        "user_mail": user_mail
     })
 
 # Caricamento del form
 @router.get("/send", response_class=HTMLResponse)
-async def get_send_email(request: Request):
-    return templates.TemplateResponse("send.html", {"request": request})
+async def send_get(request: Request, user_mail: str, reply_to: int = None, forward: int = None):
+    user = crud.get_user_by_email(db, user_mail)
+    if not user:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+
+    email_data = {
+        "destinatario": "",
+        "oggetto": "",
+        "descrizione": ""
+    }
+    # DA AGGIORNARE PER COLLEGAMENTO AL DB, NON HO AGGIORNATO ANCORA I BOTTONI RISPONDI E INOLTRA NEI TEMPLATE
+    if reply_to:
+        # Risposta → Recupera email e precompila il destinatario e l’oggetto
+        original = crud.get_email_by_id(db, reply_to)
+        if original:
+            email_data["destinatario"] = original.email_sorgente
+            email_data["oggetto"] = f"Re: {original.oggetto}"
+            email_data["descrizione"] = f"\n\n--- Messaggio originale ---\n{original.descrizione}"
+
+    elif forward:
+        # Inoltro → Recupera email e precompila oggetto e testo (destinatario vuoto)
+        original = crud.get_email_by_id(db, forward)
+        if original:
+            email_data["oggetto"] = f"Fwd: {original.oggetto}"
+            email_data["descrizione"] = f"\n\n--- Messaggio inoltrato ---\nDa: {original.email_sorgente}\n{original.descrizione}"
+
+    return templates.TemplateResponse("send.html", {
+        "request": request,
+        "user_mail": user_mail,
+        "email_data": email_data
+    })
 
 # Invio del form
 @router.post("/send", response_class=HTMLResponse)
-async def post_send_email(
-    request: Request,
-    recipient: str = Form(...),
-    subject: str = Form(...),
-    content: str = Form(...)
+async def post_send_email(request: Request, recipient: str = Form(...), subject: str = Form(...), content: str = Form(...)
 ):
     # Per ora stampa nel terminale o log — da sostituire con salvataggio nel DB
     print("EMAIL INVIATA:")
@@ -171,22 +160,38 @@ async def post_send_email(
 
 
 @router.get("/sent", response_class=HTMLResponse)
-async def sent(request: Request, email_id: int = None):
-    sorted_emails = sorted(MOCK_SENT_EMAILS, key=lambda x: x["date"], reverse=True)
-    
-    for email in sorted_emails:
-        email["formatted_date"] = format_email_date(email["date"])
-    
+async def sent(request: Request, user_mail: str, email_id: int = None):
+    user = crud.get_user_by_email(db, user_mail)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # 1. Ottieni le email inviate da questo utente
+    emails = crud.get_emails_sent_by_user(db, user.id)
+
+    # Prendiamo solo le mail che non hanno status delete = 1/2
+    emails = [email for email in emails if not crud.get_user_email_delete_status(db, user.id, email.id)]
+
+    # Ordina email per data (più recenti prima)
+    sorted_emails = sorted(emails, key=lambda x: x.data, reverse=True)
+
+    # 2. Formatta la data per ogni email e imposta come lette
+    for email in emails:
+        email.formatted_date = format_email_date(email.data)
+        email.is_read = True  # Forza lo stato come "letto" per le email inviate
+
+    # 3. Trova l’email selezionata
     selected_email = None
     if email_id:
-        selected_email = next((email for email in sorted_emails if email["id"] == email_id), None)
+        selected_email = next((email for email in emails if email.id == email_id), None)
         if selected_email:
-            selected_email["is_read"] = True
-    
+            selected_email.is_read = True  # opzionale, qui è puramente visivo
+
+    # 4. Passa tutto al template
     return templates.TemplateResponse("sent.html", {
         "request": request,
         "emails": sorted_emails,
-        "selected_email": selected_email
+        "selected_email": selected_email,
+        "user_mail": user_mail
     })
 
 
@@ -211,20 +216,67 @@ async def spam(request: Request, email_id: int = None):
 
 
 @router.get("/trash", response_class=HTMLResponse)
-async def trash(request: Request, email_id: int = None):
-    sorted_emails = sorted(MOCK_TRASH_EMAILS, key=lambda x: x["date"], reverse=True)
-    
-    for email in sorted_emails:
-        email["formatted_date"] = format_email_date(email["date"])
-    
+async def trash(request: Request, user_mail: str, email_id: int = None):
+    user = crud.get_user_by_email(db, user_mail)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Recupera le email eliminate per l'utente
+    emails = crud.get_deleted_emails_by_user(db, user.id)
+
+    # Mostriamo solo le mail con stato_deletee 1 (mail solo spostate nel cestino)
+    emails = [email for email in emails if crud.get_user_email_delete_status(db, user.id, email.id) == 1]
+
+    # Ordina email per data (più recenti prima)
+    sorted_emails = sorted(emails, key=lambda x: x.data, reverse=True)
+
+    # Aggiunge formattazione data e stato lettura
+    for email in emails:
+        email.formatted_date = format_email_date(email.data)
+        email.is_read = crud.get_user_email_read_status(db, user.id, email.id)
+
+    # Recupera email selezionata
     selected_email = None
     if email_id:
-        selected_email = next((email for email in sorted_emails if email["id"] == email_id), None)
+        selected_email = next((email for email in emails if email.id == email_id), None)
         if selected_email:
-            selected_email["is_read"] = True
-    
+            crud.update_user_email_read_status(db, user.id, selected_email.id)
+
     return templates.TemplateResponse("trash.html", {
         "request": request,
         "emails": sorted_emails,
-        "selected_email": selected_email
+        "selected_email": selected_email,
+        "user_mail": user_mail
     })
+
+
+# Sposta le mail nel cestino
+@router.post("/delete_email", response_class=HTMLResponse)
+async def delete_email(request: Request, user_mail: str = Form(...), email_id: int = Form(...), current_page: str = Form(...)):
+    # 1. Otteniamo l’utente
+    user = crud.get_user_by_email(db, user_mail)
+    if not user:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+
+    # 2. Eseguiamo la "cancellazione logica"
+    crud.update_user_email_delete_status(db, user.id, email_id)
+
+    # 3. Reindirizziamo alla pagina da cui l’utente proviene
+    return RedirectResponse(url=f"/{current_page}?user_mail={user_mail}", status_code=303)
+
+
+# Le elimina definitivamente dal db (non vero, cambia solo stato a 2)
+@router.post("/delete_forever", response_class=HTMLResponse)
+async def delete_forever_email(
+    request: Request,
+    user_mail: str = Form(...),
+    email_id: int = Form(...),
+):
+    user = crud.get_user_by_email(db, user_mail)
+    if not user:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+
+    crud.delete_user_emai_definitivelyl(db, user.id, email_id)
+
+    # Dopo la cancellazione, torna al cestino
+    return RedirectResponse(url=f"/trash?user_mail={user_mail}", status_code=303)
