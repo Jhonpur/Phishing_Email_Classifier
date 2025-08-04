@@ -37,12 +37,12 @@
       <div class="offcanvas-body">
         <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
           <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="/inbox">
+            <a class="nav-link active" aria-current="page" href="/inbox?user_mail=angebonheur@email.com">
               <i class="bi bi-inbox me-2"></i>Inbox
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/sent">
+            <a class="nav-link" href="/sent?user_mail=angebonheur@email.com">
               <i class="bi bi-send me-2"></i>Inviate
             </a>
           </li>
@@ -52,7 +52,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/trash">
+            <a class="nav-link" href="/trash?user_mail=angebonheur@email.com">
               <i class="bi bi-trash me-2"></i>Cestino
             </a>
           </li>
@@ -84,6 +84,23 @@
 
 <!-- Bootstrap JS Bundle (JS + Popper) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const listContainer = document.querySelector(".scrollarea");
 
+  // Salva la posizione dello scroll della lista
+  window.addEventListener("beforeunload", function () {
+    if (listContainer) {
+      sessionStorage.setItem("inboxScrollPos", listContainer.scrollTop);
+    }
+  });
+
+  // Ripristina lo scroll salvato della lista
+  window.addEventListener("load", function () {
+    const savedScroll = sessionStorage.getItem("inboxScrollPos");
+    if (listContainer && savedScroll !== null) {
+      listContainer.scrollTop = parseInt(savedScroll);
+    }
+  });
+</script>
 </body>
 </html>
