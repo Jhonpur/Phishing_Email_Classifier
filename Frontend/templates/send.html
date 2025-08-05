@@ -37,7 +37,7 @@
             <div class="card shadow-sm">
               <div class="card-body">
                 <form method="POST" action="/send">
-                  
+                  <input type="hidden" name="user_mail" value="{{ user_mail }}">
                   <!-- Destinatario -->
                   <div class="mb-3">
                     <label for="recipient" class="form-label fw-semibold">

@@ -70,7 +70,7 @@ def predict_spam(subject, body, model_path='predicter/spam_classifier_pipeline.j
 
     return {
         'is_spam': bool(prediction),
-        'spam_probability': round(spam_proba, 4),
+        'spam_probability': round(spam_proba, 2),
         'spam_reasons': reasons,
         'contains_url': has_url
     }

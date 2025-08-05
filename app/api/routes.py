@@ -1,12 +1,13 @@
 from fastapi import APIRouter, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse,StreamingResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 from app.database.db import engine, Base, SessionLocal
 from app.database import crud, models, schemas
 from app.utils.pdf_generator import generate_report
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from io import BytesIO
+from predict_spam import predict_spam  # Your spam detection function
 
 router = APIRouter()
 templates = Jinja2Templates(directory="Frontend/templates")
@@ -147,18 +148,71 @@ async def send_get(request: Request, user_mail: str, reply_to: int = None, forwa
 
 # Invio del form
 @router.post("/send", response_class=HTMLResponse)
-async def post_send_email(request: Request, recipient: str = Form(...), subject: str = Form(...), content: str = Form(...)
-):
-    # Per ora stampa nel terminale o log — da sostituire con salvataggio nel DB
+async def post_send_email(request: Request,
+                          user_mail: str = Form(...),
+                          recipient: str = Form(...),
+                          subject: str = Form(...),
+                          content: str = Form(...),
+                          #db: Session = Depends(get_db)
+                          ):
+    mittente = user_mail
+    #mittente = request.query_params.get("user_mail")
+    if not mittente:
+        return HTMLResponse("Mittente mancante nell'URL", status_code=400)
+
+    # Log the incoming email
     print("EMAIL INVIATA:")
+    print(f"Mittente: {mittente}")  # MANCANTE
     print(f"Destinatario: {recipient}")
     print(f"Oggetto: {subject}")
     print(f"Contenuto: {content}")
 
-    # In futuro: salva email nel database, triggera classificatore spam, ecc.
+    # Check for spam
+    spam_result = predict_spam(subject, content)
+    is_spam = spam_result['is_spam']
+    spam_reasons = spam_result['spam_reasons']
+    spam_probability = spam_result['spam_probability']
+    url = spam_result['contains_url']
 
-    # mostra pop-up di successo in inbox
-    return RedirectResponse(url="/inbox?sent=true", status_code=303)
+    # Prendo id del destinatario
+    utente_sorgente = crud.get_user_by_email(db, mittente)
+    utente_destinario = crud.get_user_by_email(db, recipient)
+    #email_id_risposta = crud.get_email_by_id(db, email_id)
+
+    if not utente_sorgente or not utente_destinario:
+        return HTMLResponse(content="Invalid sender or recipient", status_code=400)
+
+    # Save the email to the DB
+    crud.create_email_with_user_relation(
+        db=db,
+        user_id_sorgente=utente_sorgente.id,
+        user_id_destinatario=utente_destinario.id,
+        email_sorgente=mittente,
+        email_destinatario=recipient,
+        descrizione=content,
+        oggetto=subject,
+        data=datetime.now(timezone.utc),
+        url=url,
+        stato_spam=is_spam,
+        spam_reason=spam_reasons,
+        spam_probability=int(spam_probability*100),
+       # email_id_risposta=email_id_risposta
+    )
+
+    return RedirectResponse(url=f"/inbox?user_mail={mittente}&sent=true", status_code=303)
+# @router.post("/send", response_class=HTMLResponse)
+# async def post_send_email(request: Request, recipient: str = Form(...), subject: str = Form(...), content: str = Form(...)
+# ):
+#     # Per ora stampa nel terminale o log — da sostituire con salvataggio nel DB
+#     print("EMAIL INVIATA:")
+#     print(f"Destinatario: {recipient}")
+#     print(f"Oggetto: {subject}")
+#     print(f"Contenuto: {content}")
+
+#     # In futuro: salva email nel database, triggera classificatore spam, ecc.
+
+#     # mostra pop-up di successo in inbox
+#     return RedirectResponse(url="/inbox?sent=true", status_code=303)
 
 
 @router.get("/sent", response_class=HTMLResponse)
@@ -198,22 +252,31 @@ async def sent(request: Request, user_mail: str, email_id: int = None):
 
 
 @router.get("/spam", response_class=HTMLResponse)
-async def spam(request: Request, email_id: int = None):
-    sorted_emails = sorted(MOCK_SPAM_EMAILS, key=lambda x: x["date"], reverse=True)
-    
-    for email in sorted_emails:
-        email["formatted_date"] = format_email_date(email["date"])
-    
+async def spam(request: Request, user_mail: str, email_id: int = None):
+    user = crud.get_user_by_email(db, user_mail)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Ottieni le email di spam per l’utente
+    emails = crud.get_spam_emails_by_user(db, user.id)
+
+    # Aggiungi date formattate e stato lettura
+    for email in emails:
+        email.formatted_date = format_email_date(email.data)
+        email.is_read = crud.get_user_email_read_status(db, user.id, email.id)
+
+    # Seleziona email se specificato
     selected_email = None
     if email_id:
-        selected_email = next((email for email in sorted_emails if email["id"] == email_id), None)
+        selected_email = next((email for email in emails if email.id == email_id), None)
         if selected_email:
-            selected_email["is_read"] = True
-    
+            crud.update_user_email_read_status(db, user.id, selected_email.id)
+
     return templates.TemplateResponse("spam.html", {
         "request": request,
-        "emails": sorted_emails,
-        "selected_email": selected_email
+        "emails": emails,
+        "selected_email": selected_email,
+        "user_mail": user_mail
     })
 
 
