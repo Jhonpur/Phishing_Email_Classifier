@@ -18,6 +18,12 @@ contiene gli schemas pydantic che permettono la validazione dei dati per le situ
 **3-crud**
 contiene tutte le funzioni crud che permetto di interragire con il database(creare utenti, cancellare utenti, creare emails, cancellare emails , interrogare il database ecc...)
 
+**4-db**
+contienne la sessione relativa al database, che ci permette di accedere al nostro database e di esguire operazioni specifici.
+
+**5-main**
+contiene righe di codice per testare il funzionamento della parte di database.
+
 models ==> contiene le classi relative alle tabelle del database( classe User ,Email e Usermail). è stato  usato sqlalchemy  come ORM e          pydantic per la validazioendei formati dei dati.
 
 schemas ==> contiene i formati di input e output della mail e utenti. è secondo questo formato che la nostra app in backend riceve        e         ritorna dati in formato json .
