@@ -37,40 +37,48 @@
       <div class="offcanvas-body">
         <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
           <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="/inbox?user_mail=angebonheur@email.com">
+            <a class="nav-link {% if current_page == 'inbox' %}active{% endif %}" aria-current="page" href="/inbox?user_mail={{ user_mail }}">
               <i class="bi bi-inbox me-2"></i>Inbox
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/sent?user_mail=angebonheur@email.com">
+            <a class="nav-link {% if current_page == 'sent' %}active{% endif %}" href="/sent?user_mail={{ user_mail }}">
               <i class="bi bi-send me-2"></i>Inviate
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/spam?user_mail=angebonheur@email.com">
+            <a class="nav-link {% if current_page == 'spam' %}active{% endif %}" href="/spam?user_mail={{ user_mail }}">
               <i class="bi bi-shield-x me-2"></i>Spam
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/trash?user_mail=angebonheur@email.com">
+            <a class="nav-link {% if current_page == 'trash' %}active{% endif %}" href="/trash?user_mail={{ user_mail }}">
               <i class="bi bi-trash me-2"></i>Cestino
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/send?user_mail=angebonheur@email.com">
+            <a class="nav-link {% if current_page == 'send' %}active{% endif %}" href="/send?user_mail={{ user_mail }}">
               <i class="bi bi-envelope-plus me-2"></i>Invia
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/report_pdf?user_mail=angebonheur@email.com">
+            <a class="nav-link" href="/report_pdf?user_mail={{ user_mail }}">
               <i class="bi bi-graph-up me-2"></i>Report
             </a>
           </li>
         </ul>
         
-        <form class="d-flex mt-3 mt-lg-0" role="search">
+        <!-- <form class="d-flex mt-3 mt-lg-0" role="search">
           <input class="form-control me-2" type="search" placeholder="Cerca email..." aria-label="Search">
           <button class="btn btn-outline-light" type="submit">Cerca</button>
+        </form> -->
+        <form method="get" action="/inbox" class="d-flex align-items-center ms-auto me-3" style="max-width: 250px;">
+          <input type="email"
+                name="user_mail"
+                class="form-control form-control-sm me-2"
+                placeholder="Cambia utente"
+                required>
+          <button type="submit" class="btn btn-outline-primary btn-sm">Vai</button>
         </form>
       </div>
     </div>

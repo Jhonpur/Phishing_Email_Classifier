@@ -18,7 +18,7 @@
         <!-- Lista email -->
         <div class="list-group list-group-flush border-bottom scrollarea flex-grow-1" style="overflow-y: scroll;">
           {% for email in emails %}
-          <a href="/spam?user_mail={{ user_mail }}&selected_email_id={{ email.id }}" 
+          <a href="/spam?user_mail={{ user_mail }}&email_id={{ email.id }}" 
              class="list-group-item list-group-item-action py-3 lh-sm
                     {% if selected_email and selected_email.id == email.id %}bg-primary-subtle border border-primary-subtle rounded{% endif %}
                     {% if not email.is_read %}fw-bold{% endif %}">
@@ -33,7 +33,31 @@
                 {{ email.formatted_date }}
               </small>
             </div>
-            <div class="mb-1 {% if not email.is_read %}fw-semibold{% endif %}">{{ email.oggetto }}</div>
+            <div class="mb-1 d-flex flex-wrap align-items-center {% if not email.is_read %}fw-semibold{% endif %}">
+              <span class="me-2">{{ email.oggetto }}</span>
+
+              {% if email.spam_reason %}
+                {% for reason in email.spam_reason %}
+                  <span class="badge rounded-pill me-1 mt-1
+                    {% if reason == 'Dati sensibili' %}
+                      bg-danger-subtle text-danger border border-danger-subtle
+                    {% elif reason == 'Contiene link' %}
+                      bg-warning-subtle text-warning border border-warning-subtle
+                    {% elif reason == 'Link a indirizzo IP' %}
+                      bg-info-subtle text-info border border-info-subtle
+                    {% elif reason == 'Dominio sospetto' %}
+                      bg-secondary-subtle text-secondary border border-secondary-subtle
+                    {% elif reason == 'Marketing aggressivo' %}
+                      bg-success-subtle text-success border border-success-subtle
+                    {% else %}
+                      bg-light-subtle text-dark border
+                    {% endif %}"
+                    style="font-size: 0.7rem; padding: 0.25em 0.5em;">
+                    {{ reason }}
+                  </span>
+                {% endfor %}
+              {% endif %}
+            </div>
             <div class="col-10 mb-1 small text-body-secondary">
               {{ email.descrizione[:50] }}{% if email.descrizione|length > 50 %}...{% endif %}
             </div>
@@ -51,14 +75,39 @@
         <!-- Header email selezionata -->
         <div class="border-bottom p-4 bg-white">
           <div class="d-flex justify-content-between align-items-start mb-3">
-            <h4 class="mb-0">{{ selected_email.oggetto }}</h4>
+            <h4 class="mb-0 d-flex flex-wrap align-items-center">
+              <span class="me-2">{{ selected_email.oggetto }}</span>
+
+              {% if selected_email.spam_reason %}
+                {% for reason in selected_email.spam_reason %}
+                  <span class="badge rounded-pill me-1 mt-1
+                    {% if reason == 'Dati sensibili' %}
+                      bg-danger-subtle text-danger border border-danger-subtle
+                    {% elif reason == 'Contiene link' %}
+                      bg-warning-subtle text-warning border border-warning-subtle
+                    {% elif reason == 'Link a indirizzo IP' %}
+                      bg-info-subtle text-info border border-info-subtle
+                    {% elif reason == 'Dominio sospetto' %}
+                      bg-secondary-subtle text-secondary border border-secondary-subtle
+                    {% elif reason == 'Marketing aggressivo' %}
+                      bg-success-subtle text-success border border-success-subtle
+                    {% else %}
+                      bg-light-subtle text-dark border
+                    {% endif %}">
+                    {{ reason }}
+                  </span>
+                {% endfor %}
+              {% endif %}
+            </h4>
             <div class="btn-group" role="group">
-              <button type="button" class="btn btn-outline-secondary btn-sm">
+              <a href="/send?user_mail={{ user_mail }}&reply_to={{ selected_email.id }}"
+                class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-reply"></i> Rispondi
-              </button>
-              <button type="button" class="btn btn-outline-secondary btn-sm">
+              </a>
+              <a href="/send?user_mail={{ user_mail }}&forward={{ selected_email.id }}"
+                class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-90deg-right"></i> Inoltra
-              </button>
+              </a>
               <form method="post" action="/delete_email">
                 <input type="hidden" name="user_mail" value="{{ user_mail }}">
                 <input type="hidden" name="email_id" value="{{ selected_email.id }}">

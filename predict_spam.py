@@ -77,7 +77,7 @@ def predict_spam(subject, body, model_path='predicter/spam_classifier_pipeline.j
 
 def classify_spam_reason(subject, body):
     text = (subject + ' ' + body).lower()
-    reasons = []
+    reasons = ['spam']
 
     if re.search(r'\b(bank|account|iban|card|login|password|verify|otp|credentials)\b', text):
         reasons.append('Dati sensibili')

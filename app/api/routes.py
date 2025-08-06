@@ -6,6 +6,7 @@ from app.database.db import engine, Base, SessionLocal
 from app.database import crud, models, schemas
 from app.utils.pdf_generator import generate_report
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from io import BytesIO
 from predict_spam import predict_spam  # Your spam detection function
 
@@ -16,43 +17,6 @@ Base.metadata.create_all(bind=engine)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 db = SessionLocal() 
 
-# Dati per spam
-MOCK_SPAM_EMAILS = [
-    {
-        "id": 201,
-        "sender": "noreply@fake-bank.com",
-        "subject": "URGENTE: Verifica il tuo conto",
-        "preview": "Il tuo conto verrà bloccato se non verifichi entro 24 ore...",
-        "date": datetime.now() - timedelta(hours=5),
-        "content": "ATTENZIONE: Il tuo conto bancario verrà sospeso. Clicca qui per verificare.",
-        "is_read": False
-    }
-]
-#from fastapi import FastAPI, HTTPException
-#from pydantic import BaseModel
-#from fastapi.responses import JSONResponse
-#app = FastAPI()
-# 
-#class LoginData(BaseModel):
-#    email: str
-#    password: str
-# 
-#@app.get("/", response_class=HTMLResponse)
-#def get_login(request: Request):
-#    return templates.TemplateResponse("login.html", {"request": request})
-#    
-## Endpoint API per il login
-#@app.post("/login")
-#def login(data: LoginData):
-#    if data.email == "admin@email.com" and data.password == "123":
-#        return {
-#            "token": "jwt_token_fake_123",
-#            "user": {
-#                "email": data.email,
-#                "name": "Admin"
-#            }
-#        }
-#    return JSONResponse(status_code=401, content={"detail": "Credenziali errate"})
 
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request):
@@ -60,10 +24,17 @@ async def home(request: Request):
 
 
 def format_email_date(date):
-    today = datetime.today().date()
-    if date.date() == today:
-        return date.strftime("%H:%M")  # solo orario se è oggi
-    return date.strftime("%d/%m")      # altrimenti giorno/mese
+    # Se l'orario non ha timezone, assumiamo che sia in UTC e lo convertiamo
+    if date.tzinfo is None:
+        date = date.replace(tzinfo=ZoneInfo("UTC"))
+
+    # Convertiamo da UTC a Europe/Rome
+    date = date.astimezone(ZoneInfo("Europe/Rome"))
+    now = datetime.now(ZoneInfo("Europe/Rome"))
+
+    if date.date() == now.date():
+        return date.strftime("%H:%M")
+    return date.strftime("%d/%m")
 
 
 @router.get("/inbox", response_class=HTMLResponse)
@@ -75,8 +46,8 @@ async def inbox(request: Request, user_mail: str, selected_email_id: int = None)
     # Ottengo tutte le email ricevute
     emails = user.received
 
-    # Prendiamo solo le mail che non hanno status delete = 1/2
-    emails = [email for email in emails if not crud.get_user_email_delete_status(db, user.id, email.id)]
+    # Prendiamo solo le mail che non hanno status delete = 1/2, e che non siano spam
+    emails = [email for email in emails if not crud.get_user_email_delete_status(db, user.id, email.id)and not email.stato_spam]
 
     # Ordina email per data (più recenti prima)
     sorted_emails = sorted(emails, key=lambda x: x.data, reverse=True)
@@ -84,18 +55,11 @@ async def inbox(request: Request, user_mail: str, selected_email_id: int = None)
     # Controllo stato per pop-up di conferma email inviata
     sent = request.query_params.get("sent") == "true"
 
-    # Controllo stato di eliminazione per visualizzazione email
     # Aggiungi date formattate
     for email in sorted_emails:
         email.formatted_date = format_email_date(email.data)
         email.is_read = crud.get_user_email_read_status(db, user.id, email.id)
-        
-        # Aggiungi info extra da database a ogni email
-    #for email in sorted_emails:
-    #    email.formatted_date = format_email_date(email.data)
-    #    # Qui leggiamo dal database se la mail è letta
-    #    read_status = crud.get_user_email_read_status(db, user.id, email.id)
-    #    email.is_read = read_status  # puoi usare anche email.stato_read, ma meglio is_read per templat
+
 
     selected_email = None
     if selected_email_id:
@@ -109,7 +73,8 @@ async def inbox(request: Request, user_mail: str, selected_email_id: int = None)
         "emails": sorted_emails,
         "selected_email": selected_email,
         "sent": sent,
-        "user_mail": user_mail
+        "user_mail": user_mail,
+        "current_page": "inbox"
     })
 
 # Caricamento del form
@@ -124,7 +89,7 @@ async def send_get(request: Request, user_mail: str, reply_to: int = None, forwa
         "oggetto": "",
         "descrizione": ""
     }
-    # DA AGGIORNARE PER COLLEGAMENTO AL DB, NON HO AGGIORNATO ANCORA I BOTTONI RISPONDI E INOLTRA NEI TEMPLATE
+    
     if reply_to:
         # Risposta → Recupera email e precompila il destinatario e l’oggetto
         original = crud.get_email_by_id(db, reply_to)
@@ -143,7 +108,10 @@ async def send_get(request: Request, user_mail: str, reply_to: int = None, forwa
     return templates.TemplateResponse("send.html", {
         "request": request,
         "user_mail": user_mail,
-        "email_data": email_data
+        "email_data": email_data,
+        "reply_to": reply_to,
+        "forward": forward,
+        "current_page": "send"
     })
 
 # Invio del form
@@ -153,6 +121,7 @@ async def post_send_email(request: Request,
                           recipient: str = Form(...),
                           subject: str = Form(...),
                           content: str = Form(...),
+                          reply_to: int = Form(None),
                           #db: Session = Depends(get_db)
                           ):
     mittente = user_mail
@@ -196,23 +165,10 @@ async def post_send_email(request: Request,
         stato_spam=is_spam,
         spam_reason=spam_reasons,
         spam_probability=int(spam_probability*100),
-       # email_id_risposta=email_id_risposta
+        email_id_risposta=reply_to
     )
 
     return RedirectResponse(url=f"/inbox?user_mail={mittente}&sent=true", status_code=303)
-# @router.post("/send", response_class=HTMLResponse)
-# async def post_send_email(request: Request, recipient: str = Form(...), subject: str = Form(...), content: str = Form(...)
-# ):
-#     # Per ora stampa nel terminale o log — da sostituire con salvataggio nel DB
-#     print("EMAIL INVIATA:")
-#     print(f"Destinatario: {recipient}")
-#     print(f"Oggetto: {subject}")
-#     print(f"Contenuto: {content}")
-
-#     # In futuro: salva email nel database, triggera classificatore spam, ecc.
-
-#     # mostra pop-up di successo in inbox
-#     return RedirectResponse(url="/inbox?sent=true", status_code=303)
 
 
 @router.get("/sent", response_class=HTMLResponse)
@@ -221,7 +177,7 @@ async def sent(request: Request, user_mail: str, email_id: int = None):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # 1. Ottieni le email inviate da questo utente
+    # Ottieniamo le email inviate da questo utente
     emails = crud.get_emails_sent_by_user(db, user.id)
 
     # Prendiamo solo le mail che non hanno status delete = 1/2
@@ -230,24 +186,25 @@ async def sent(request: Request, user_mail: str, email_id: int = None):
     # Ordina email per data (più recenti prima)
     sorted_emails = sorted(emails, key=lambda x: x.data, reverse=True)
 
-    # 2. Formatta la data per ogni email e imposta come lette
+    # Formatta la data per ogni email e imposta come lette
     for email in emails:
         email.formatted_date = format_email_date(email.data)
         email.is_read = True  # Forza lo stato come "letto" per le email inviate
 
-    # 3. Trova l’email selezionata
+    # Recupera l’email selezionata
     selected_email = None
     if email_id:
         selected_email = next((email for email in emails if email.id == email_id), None)
         if selected_email:
             selected_email.is_read = True  # opzionale, qui è puramente visivo
 
-    # 4. Passa tutto al template
+    # Passa tutto al template
     return templates.TemplateResponse("sent.html", {
         "request": request,
         "emails": sorted_emails,
         "selected_email": selected_email,
-        "user_mail": user_mail
+        "user_mail": user_mail,
+        "current_page": "sent"
     })
 
 
@@ -259,6 +216,9 @@ async def spam(request: Request, user_mail: str, email_id: int = None):
 
     # Ottieni le email di spam per l’utente
     emails = crud.get_spam_emails_by_user(db, user.id)
+
+    # Ordina email per data (più recenti prima)
+    sorted_emails = sorted(emails, key=lambda x: x.data, reverse=True)
 
     # Aggiungi date formattate e stato lettura
     for email in emails:
@@ -274,9 +234,10 @@ async def spam(request: Request, user_mail: str, email_id: int = None):
 
     return templates.TemplateResponse("spam.html", {
         "request": request,
-        "emails": emails,
+        "emails": sorted_emails,
         "selected_email": selected_email,
-        "user_mail": user_mail
+        "user_mail": user_mail,
+        "current_page": "spam"
     })
 
 
@@ -289,7 +250,7 @@ async def trash(request: Request, user_mail: str, email_id: int = None):
     # Recupera le email eliminate per l'utente
     emails = crud.get_deleted_emails_by_user(db, user.id)
 
-    # Mostriamo solo le mail con stato_deletee 1 (mail solo spostate nel cestino)
+    # Mostriamo solo le mail con stato_delete 1 (mail solo spostate nel cestino)
     emails = [email for email in emails if crud.get_user_email_delete_status(db, user.id, email.id) == 1]
 
     # Ordina email per data (più recenti prima)
@@ -311,7 +272,8 @@ async def trash(request: Request, user_mail: str, email_id: int = None):
         "request": request,
         "emails": sorted_emails,
         "selected_email": selected_email,
-        "user_mail": user_mail
+        "user_mail": user_mail,
+        "current_page": "trash"
     })
 
 
