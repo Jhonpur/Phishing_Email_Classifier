@@ -43,7 +43,7 @@
           </li>
           <li class="nav-item">
             <a class="nav-link {% if current_page == 'sent' %}active{% endif %}" href="/sent?user_mail={{ user_mail }}">
-              <i class="bi bi-send me-2"></i>Inviate
+              <i class="bi bi-send me-2"></i>Sent
             </a>
           </li>
           <li class="nav-item">
@@ -53,12 +53,12 @@
           </li>
           <li class="nav-item">
             <a class="nav-link {% if current_page == 'trash' %}active{% endif %}" href="/trash?user_mail={{ user_mail }}">
-              <i class="bi bi-trash me-2"></i>Cestino
+              <i class="bi bi-trash me-2"></i>Trashbin
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link {% if current_page == 'send' %}active{% endif %}" href="/send?user_mail={{ user_mail }}">
-              <i class="bi bi-envelope-plus me-2"></i>Invia
+              <i class="bi bi-envelope-plus me-2"></i>Send
             </a>
           </li>
           <li class="nav-item">
@@ -76,9 +76,9 @@
           <input type="email"
                 name="user_mail"
                 class="form-control form-control-sm me-2"
-                placeholder="Cambia utente"
+                placeholder="Change user"
                 required>
-          <button type="submit" class="btn btn-outline-primary btn-sm">Vai</button>
+          <button type="submit" class="btn btn-outline-primary btn-sm">Log</button>
         </form>
       </div>
     </div>

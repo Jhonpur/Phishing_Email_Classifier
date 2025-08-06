@@ -80,14 +80,14 @@ def classify_spam_reason(subject, body):
     reasons = ['spam']
 
     if re.search(r'\b(bank|account|iban|card|login|password|verify|otp|credentials)\b', text):
-        reasons.append('Dati sensibili')
+        reasons.append('Sensitive data')
     if re.search(r'http[s]?://', text):
-        reasons.append('Contiene link')
+        reasons.append('Contains links')
     if re.search(r'http[s]?://\d{1,3}(?:\.\d{1,3}){3}', text):
-        reasons.append('Link a indirizzo IP')
+        reasons.append('Link to IP address')
     if re.search(r'http[s]?://(?:bit\.ly|tinyurl\.com|freehosting)', text):
-        reasons.append('Dominio sospetto')
+        reasons.append('Suspicious domain')
     if re.search(r'\b(gratis|free|win|bitcoin|investment|only today|money|discount)\b', text):
-        reasons.append('Marketing aggressivo')
+        reasons.append('Aggressive marketing')
 
     return reasons if reasons else ['Nessuna causa specifica identificata']

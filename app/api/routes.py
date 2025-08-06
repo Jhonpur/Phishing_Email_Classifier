@@ -82,7 +82,7 @@ async def inbox(request: Request, user_mail: str, selected_email_id: int = None)
 async def send_get(request: Request, user_mail: str, reply_to: int = None, forward: int = None):
     user = crud.get_user_by_email(db, user_mail)
     if not user:
-        raise HTTPException(status_code=404, detail="Utente non trovato")
+        raise HTTPException(status_code=404, detail="User not found")
 
     email_data = {
         "destinatario": "",
@@ -96,14 +96,14 @@ async def send_get(request: Request, user_mail: str, reply_to: int = None, forwa
         if original:
             email_data["destinatario"] = original.email_sorgente
             email_data["oggetto"] = f"Re: {original.oggetto}"
-            email_data["descrizione"] = f"\n\n--- Messaggio originale ---\n{original.descrizione}"
+            email_data["descrizione"] = f"\n\n--- Original message ---\n{original.descrizione}"
 
     elif forward:
         # Inoltro → Recupera email e precompila oggetto e testo (destinatario vuoto)
         original = crud.get_email_by_id(db, forward)
         if original:
             email_data["oggetto"] = f"Fwd: {original.oggetto}"
-            email_data["descrizione"] = f"\n\n--- Messaggio inoltrato ---\nDa: {original.email_sorgente}\n{original.descrizione}"
+            email_data["descrizione"] = f"\n\n--- Message forwarded ---\nFrom: {original.email_sorgente}\n{original.descrizione}"
 
     return templates.TemplateResponse("send.html", {
         "request": request,
@@ -127,7 +127,7 @@ async def post_send_email(request: Request,
     mittente = user_mail
     #mittente = request.query_params.get("user_mail")
     if not mittente:
-        return HTMLResponse("Mittente mancante nell'URL", status_code=400)
+        return HTMLResponse("Sender missing from URL", status_code=400)
 
     # Log the incoming email
     print("EMAIL INVIATA:")
@@ -283,7 +283,7 @@ async def delete_email(request: Request, user_mail: str = Form(...), email_id: i
     # 1. Otteniamo l’utente
     user = crud.get_user_by_email(db, user_mail)
     if not user:
-        raise HTTPException(status_code=404, detail="Utente non trovato")
+        raise HTTPException(status_code=404, detail="User not found")
 
     # 2. Eseguiamo la "cancellazione logica"
     crud.update_user_email_delete_status(db, user.id, email_id)
@@ -301,7 +301,7 @@ async def delete_forever_email(
 ):
     user = crud.get_user_by_email(db, user_mail)
     if not user:
-        raise HTTPException(status_code=404, detail="Utente non trovato")
+        raise HTTPException(status_code=404, detail="User not found")
 
     crud.delete_user_emai_definitivelyl(db, user.id, email_id)
 
@@ -314,12 +314,12 @@ def report_category(user_mail:str):
     user = crud.get_user_by_email(db, user_mail)
     #user = crud.get_user_by_id(db, user_id.id)
     if not user:
-        raise HTTPException(status_code=404, detail="Utente non trovato")
+        raise HTTPException(status_code=404, detail="User not found")
     try:
         pdf_bytes = generate_report(db, user.id)
         return StreamingResponse(BytesIO(pdf_bytes),
                                  media_type="application/pdf",
                                  headers={"Content-Disposition": f"attachment; filename=rapport_categorie_{user.nome}.pdf"})
     except Exception as e:
-        print("Errore:", e)
+        print("Error:", e)
         raise HTTPException(status_code=404, detail=str(e))
