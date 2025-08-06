@@ -63,7 +63,7 @@ def predict_spam(subject, body, model_path='predicter/spam_classifier_pipeline.j
 
     has_url = bool(re.search(r'http[s]?://', body))
 
-    reasons = []
+    reasons = ['Not Spam']
 
     if bool(prediction) is True:
         reasons = classify_spam_reason(subject, body)
@@ -77,7 +77,7 @@ def predict_spam(subject, body, model_path='predicter/spam_classifier_pipeline.j
 
 def classify_spam_reason(subject, body):
     text = (subject + ' ' + body).lower()
-    reasons = ['spam']
+    reasons = []
 
     if re.search(r'\b(bank|account|iban|card|login|password|verify|otp|credentials)\b', text):
         reasons.append('Sensitive Data')
@@ -88,6 +88,6 @@ def classify_spam_reason(subject, body):
     if re.search(r'http[s]?://(?:bit\.ly|tinyurl\.com|freehosting)', text):
         reasons.append('Suspicious Domain')
     if re.search(r'\b(gratis|free|win|bitcoin|investment|only today|money|discount)\b', text):
-        reasons.append('Aggressive Markteing aggressivo')
+        reasons.append('Aggressive Marketing')
 
-    return reasons if reasons else ['Nothing to add']
+    return reasons if reasons else ['No particular reason']
