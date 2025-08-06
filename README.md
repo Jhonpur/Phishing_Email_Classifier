@@ -5,5 +5,5 @@ Progetto di team per la scansione e-mail
 - app
 - dataset
 - Frontend
-- models
+- models: machine learning e deep learning
 - predicter: contiene la pipeline con il modello di machine learning già addestrati con l'encoder del testo
