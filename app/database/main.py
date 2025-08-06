@@ -1,5 +1,6 @@
 """(serve solo per testare localmente)"""
 
+"""
 #from sqlalchemy.orm import Session
 from app.database.db import engine, Base, SessionLocal
 from app.database.models import *
@@ -12,19 +13,22 @@ from datetime import datetime, timezone
 Base.metadata.create_all(bind=engine)
 from sqlalchemy.orm import sessionmaker
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+"""
 
+"""
 def sep():
-    print("=" *50)
+    print("=" *50)"""
 
+"""
 def scansiona_spam():
     num = rd.randint(0,1)
     return {'is_spam': num,
              'spam_probability': rd.randint(0,100) if num == 1 else 0, # Simula una probabilità di spam casuale, 
             'spam_reason': ["phishing","link malevole","marketing agressivo"] if num == 1 else None # Simula una probabilità di spam casuale e un motivo opzionale
     } 
-
+"""
     
-
+"""
 def main():
     db = SessionLocal()
 
@@ -76,8 +80,7 @@ def main():
     email_schema3 = EmailCreate(
         email_sorgente=user1.email,
         email_destinatario=user2.email,
-        descrizione="""bene, senti dobbiamo preparare una sorpresa per GABRI. si è appena laureato dobbiamo fargli un regalino.
-        cosa ne pensi?""",
+        descrizione="bene, senti dobbiamo preparare una sorpresa per GABRI. si è appena laureato dobbiamo fargli un regalino.cosa ne pensi?",
         email_id_risposta = 2, # risposta alla seconda  mail
         data=datetime.now(timezone.utc),
         #stato_spam = scansiona_spam()
@@ -87,7 +90,7 @@ def main():
     email_schema4 = EmailCreate(
         email_sorgente=user2.email,
         email_destinatario=user1.email,
-        descrizione="""ah buona idea. ne parliamo intorno a un sprizt? domani dopo il lavoro a porta nuova""",
+        descrizione="ah buona idea. ne parliamo intorno a un sprizt? domani dopo il lavoro a porta nuova",
         email_id_risposta = 3, # risposta alla terza mail
         data=datetime.now(timezone.utc),
         #stato_spam = scansiona_spam()
@@ -97,7 +100,7 @@ def main():
     email_schema5 = EmailCreate(
         email_sorgente=user1.email,
         email_destinatario=user2.email,
-        descrizione="""ok . vabbin""",
+        descrizione="ok . vabbin",
         email_id_risposta = 4, # risposta alla quarta mail
         data=datetime.now(timezone.utc),
         #stato_spam = scansiona_spam()
@@ -114,7 +117,7 @@ def main():
     email_schema6 = EmailCreate(
         email_sorgente=user1.email,
         email_destinatario=user3.email,
-        descrizione="""il capibarra è l'animale piu simpatico al mondo . non ha nessun predattore e mangia solo erba """,
+        descrizione="il capibarra è l'animale piu simpatico al mondo . non ha nessun predattore e mangia solo erba ",
         #email_id_risposta = 4, # risposta alla quarta mail
         data=datetime.now(timezone.utc),
         #stato_spam = scansiona_spam()
@@ -124,7 +127,7 @@ def main():
     email_schema7 = EmailCreate(
         email_sorgente=user2.email,
         email_destinatario=user3.email,
-        descrizione="""gentile gabri, mi serve il tuo curriculum per preparare il collocquio conosciutivo. grazie per l'attenzione""",
+        descrizione="gentile gabri, mi serve il tuo curriculum per preparare il collocquio conosciutivo. grazie per l'attenzione",
         #email_id_risposta = 4, # risposta alla quarta mail
         data=datetime.now(timezone.utc),
         #stato_spam = scansiona_spam()
@@ -134,7 +137,7 @@ def main():
     email_schema8 = EmailCreate(
         email_sorgente=user3.email,
         email_destinatario=user1.email,
-        descrizione="""salve ange. perfavore mi puoi mandare l'indirizzo della cena di sta sera? grazie""",
+        descrizione="salve ange. perfavore mi puoi mandare l'indirizzo della cena di sta sera? grazie",
         #email_id_risposta = 4, # risposta alla quarta mail
         data=datetime.now(timezone.utc),
         #stato_spam = scansiona_spam()
@@ -168,6 +171,9 @@ def main():
 
     print(get_unread_emails_by_user(db, user_id = 1))
     sep()
+"""
 
+"""
 if __name__ == "__main__":
     main()
+    """
