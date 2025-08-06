@@ -1,6 +1,6 @@
 """(serve solo per testare localmente)"""
 
-"""
+
 #from sqlalchemy.orm import Session
 from app.database.db import engine, Base, SessionLocal
 from app.database.models import *
@@ -13,12 +13,12 @@ from datetime import datetime, timezone
 Base.metadata.create_all(bind=engine)
 from sqlalchemy.orm import sessionmaker
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-"""
+
 
 """
 def sep():
-    print("=" *50)"""
-
+    print("=" *50)
+"""
 """
 def scansiona_spam():
     num = rd.randint(0,1)
@@ -28,7 +28,7 @@ def scansiona_spam():
     } 
 """
     
-"""
+
 def main():
     db = SessionLocal()
 
@@ -49,10 +49,10 @@ def main():
     user3 = create_user(db, **user3_schema.model_dump())
     print("Utenti creati:", user1, user2, user3)
     
-    sep()
-    sep()
-    sep()
-
+    #sep()
+    #sep()
+    #sep()
+    """
     # Crea una email da Mario ad Anna
     dict1 = scansiona_spam() # Simula la scansione per spam
     email_schema1 = EmailCreate(
@@ -173,7 +173,7 @@ def main():
     sep()
 """
 
-"""
+
 if __name__ == "__main__":
     main()
-    """
+    
