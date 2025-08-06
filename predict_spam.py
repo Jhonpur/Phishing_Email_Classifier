@@ -63,31 +63,31 @@ def predict_spam(subject, body, model_path='predicter/spam_classifier_pipeline.j
 
     has_url = bool(re.search(r'http[s]?://', body))
 
-    reasons = ['Not Spam']
+    reasons = []
 
     if bool(prediction) is True:
         reasons = classify_spam_reason(subject, body)
 
     return {
         'is_spam': bool(prediction),
-        'spam_probability': round(spam_proba, 4),
+        'spam_probability': round(spam_proba, 2),
         'spam_reasons': reasons,
         'contains_url': has_url
     }
 
 def classify_spam_reason(subject, body):
     text = (subject + ' ' + body).lower()
-    reasons = []
+    reasons = ['spam']
 
     if re.search(r'\b(bank|account|iban|card|login|password|verify|otp|credentials)\b', text):
-        reasons.append('Sensitive Data')
+        reasons.append('Sensitive data')
     if re.search(r'http[s]?://', text):
-        reasons.append('Has urls')
+        reasons.append('Contains links')
     if re.search(r'http[s]?://\d{1,3}(?:\.\d{1,3}){3}', text):
-        reasons.append('IP link')
+        reasons.append('Link to IP address')
     if re.search(r'http[s]?://(?:bit\.ly|tinyurl\.com|freehosting)', text):
-        reasons.append('Suspicious Domain')
+        reasons.append('Suspicious domain')
     if re.search(r'\b(gratis|free|win|bitcoin|investment|only today|money|discount)\b', text):
-        reasons.append('Aggressive Marketing')
+        reasons.append('Aggressive marketing')
 
-    return reasons if reasons else ['No particular reason']
+    return reasons if reasons else ['Nessuna causa specifica identificata']
