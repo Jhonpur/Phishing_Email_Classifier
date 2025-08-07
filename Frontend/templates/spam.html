@@ -39,15 +39,15 @@
               {% if email.spam_reason %}
                 {% for reason in email.spam_reason %}
                   <span class="badge rounded-pill me-1 mt-1
-                    {% if reason == 'Sensitive data' %}
+                    {% if reason == 'Sensitive Data' %}
                       bg-danger-subtle text-danger border border-danger-subtle
-                    {% elif reason == 'Contains links' %}
+                    {% elif reason == 'Has Urls' %}
                       bg-warning-subtle text-warning border border-warning-subtle
-                    {% elif reason == 'Link to IP address' %}
+                    {% elif reason == 'IP Address' %}
                       bg-info-subtle text-info border border-info-subtle
-                    {% elif reason == 'Suspicious domain' %}
+                    {% elif reason == 'Suspicious Domain' %}
                       bg-secondary-subtle text-secondary border border-secondary-subtle
-                    {% elif reason == 'Aggressive marketing' %}
+                    {% elif reason == 'Aggressive Marketing' %}
                       bg-success-subtle text-success border border-success-subtle
                     {% else %}
                       bg-light-subtle text-dark border
@@ -81,15 +81,15 @@
               {% if selected_email.spam_reason %}
                 {% for reason in selected_email.spam_reason %}
                   <span class="badge rounded-pill me-1 mt-1
-                    {% if reason == 'Sensitive data' %}
+                    {% if reason == 'Sensitive Data' %}
                       bg-danger-subtle text-danger border border-danger-subtle
-                    {% elif reason == 'Contains links' %}
+                    {% elif reason == 'Has Urls' %}
                       bg-warning-subtle text-warning border border-warning-subtle
-                    {% elif reason == 'Link to IP address' %}
+                    {% elif reason == 'IP Address' %}
                       bg-info-subtle text-info border border-info-subtle
-                    {% elif reason == 'Suspicious domain' %}
+                    {% elif reason == 'Suspicious Domain' %}
                       bg-secondary-subtle text-secondary border border-secondary-subtle
-                    {% elif reason == 'Aggressive marketing' %}
+                    {% elif reason == 'Aggressive Marketing' %}
                       bg-success-subtle text-success border border-success-subtle
                     {% else %}
                       bg-light-subtle text-dark border
