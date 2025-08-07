@@ -144,6 +144,7 @@ def graph_report_user(num_tot_mail_spam,num_tot_mail_riceived):
 
 
 #funzione per generare il grafico a torta per il report che mostra i tipi di spam
+"""
 def graph_spam_reason_user(db: Session, user_id: int):
     spam =  get_spam_emails_by_user(db, user_id) # ottengo tutte le mail spam dell'utente
     spam_reasons = []
@@ -155,6 +156,29 @@ def graph_spam_reason_user(db: Session, user_id: int):
        else:
            spam_reasons.append("Altro") # se non ci sono motivi di spam, aggiungo un messaggio predefinito
        #spam_reasons.extend(email.spam_reason) if email.spam_reason else None # aggiungo i motivi di spam alla lista spam_reasons
+
+    # Contare le occorrenze di ogni motivo di spam
+    reason_counts = pd.Series(spam_reasons).value_counts()
+
+    # Creare il grafico a torta
+    fig, ax = plt.subplots()
+    reason_counts.plot(kind='pie', autopct='%1.1f%%', ax=ax, startangle=90, legend=False)
+    ax.set_ylabel('')  # Rimuovere l'etichetta dell'asse y
+    ax.set_title('Motivi di Spam per l\'Utente')
+    plt.tight_layout()  # Ottimizza il layout per evitare sovrapposizioni
+
+
+    return fig
+    """
+
+
+def graph_spam_reason_user(db: Session, user_id: int):
+    spam =  get_spam_emails_by_user(db, user_id) # ottengo tutte le mail spam dell'utente
+    spam_reasons = []
+    for email in spam:
+       for reason in email.spam_reason:
+           spam_reasons.append(reason) 
+       
 
     # Contare le occorrenze di ogni motivo di spam
     reason_counts = pd.Series(spam_reasons).value_counts()
