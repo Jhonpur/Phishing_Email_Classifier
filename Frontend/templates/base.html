@@ -90,6 +90,43 @@
 <!-- I contenuti delle pagine che estendono base.html -->
 {% endblock %}
 
+<!-- Dropdown switch tema -->
+<div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 z-3">
+  <button class="btn btn-primary dropdown-toggle d-flex align-items-center gap-2"
+          id="themeSwitcher"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+          aria-label="Toggle theme">
+    <i id="theme-active-icon" class="bi bi-moon-stars-fill"></i>
+    <span class="d-none d-sm-inline">Theme</span>
+  </button>
+
+  <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="themeSwitcher">
+    <li>
+      <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light">
+        <i class="bi bi-sun-fill me-2 opacity-50"></i>
+        Light
+        <i class="bi bi-check2 ms-auto d-none" data-check-icon></i>
+      </button>
+    </li>
+    <li>
+      <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark">
+        <i class="bi bi-moon-stars-fill me-2 opacity-50"></i>
+        Dark
+        <i class="bi bi-check2 ms-auto d-none" data-check-icon></i>
+      </button>
+    </li>
+    <li>
+      <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="auto">
+        <i class="bi bi-circle-half me-2 opacity-50"></i>
+        Auto
+        <i class="bi bi-check2 ms-auto d-none" data-check-icon></i>
+      </button>
+    </li>
+  </ul>
+</div>
+
 <!-- Bootstrap JS Bundle (JS + Popper) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -110,5 +147,71 @@
     }
   });
 </script>
+
+<!-- Funzione per dark mode -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const KEY = 'bsTheme';
+  const html = document.documentElement;
+  const activeIcon = document.getElementById('theme-active-icon');
+  const buttons = document.querySelectorAll('[data-bs-theme-value]');
+
+  // Default come piace a te: dark se non c'è nulla salvato
+  const getStored = () => localStorage.getItem(KEY) || 'dark';
+
+  const applyTheme = (t) => {
+    if (t === 'auto') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-bs-theme', prefersDark ? 'dark' : 'light');
+    } else {
+      html.setAttribute('data-bs-theme', t);
+    }
+  };
+
+  const setActiveUI = (t) => {
+    // stato attivo nel menu + icona sul bottone
+    buttons.forEach(btn => {
+      const v = btn.getAttribute('data-bs-theme-value');
+      const isActive = (v === t);
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-pressed', isActive);
+      const check = btn.querySelector('[data-check-icon]');
+      if (check) check.classList.toggle('d-none', !isActive);
+    });
+
+    // icona attiva (font-classes, niente <use>)
+    const iconMap = { light: 'bi-sun-fill', dark: 'bi-moon-stars-fill', auto: 'bi-circle-half' };
+    const cls = iconMap[t] || iconMap.dark;
+    activeIcon.className = `bi ${cls}`;
+  };
+
+  const setTheme = (t) => {
+    localStorage.setItem(KEY, t);
+    applyTheme(t);
+    setActiveUI(t);
+  };
+
+  // Init
+  const current = getStored();
+  applyTheme(current);
+  setActiveUI(current);
+
+  // System change listener solo se auto
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (localStorage.getItem(KEY) === 'auto') {
+      applyTheme('auto');
+      setActiveUI('auto');
+    }
+  });
+
+  // Click sui bottoni
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      setTheme(btn.getAttribute('data-bs-theme-value'));
+    });
+  });
+});
+</script>
+
 </body>
 </html>
