@@ -213,5 +213,18 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+<!-- Script per la funzione di ricerca -->
+<script>
+  document.getElementById("searchInput").addEventListener("keyup", function() {
+    let filter = this.value.toLowerCase();
+    let emails = document.querySelectorAll(".list-group .list-group-item");
+
+    emails.forEach(email => {
+      let text = email.textContent.toLowerCase();
+      email.style.display = text.includes(filter) ? "" : "none";
+    });
+  });
+</script>
+
 </body>
 </html>

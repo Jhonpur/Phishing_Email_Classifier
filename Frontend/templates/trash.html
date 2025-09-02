@@ -5,7 +5,7 @@
   <div class="row g-0">
     
     <!-- SIDEBAR SINISTRA - Lista Email -->
-    <div class="col-12 col-md-4 col-lg-3 border-end" style="height: calc(100vh - 100px);">
+    <div class="col-12 col-md-4 col-lg-3 border-end" style="height: calc(100vh - 58px);">
       <div class="d-flex flex-column align-items-stretch flex-shrink-0 bg-body-tertiary h-100">
         
         <!-- Header sidebar -->
@@ -17,6 +17,12 @@
 
         <!-- Lista email -->
         <div class="list-group list-group-flush border-bottom scrollarea flex-grow-1" style="overflow-y: scroll;">
+
+          <!-- AGGIUNTA PER RICERCA -->
+          <div class="p-2 border-bottom">
+            <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Cerca email...">
+          </div>
+
           {% for email in emails %}
           <a href="/trash?user_mail={{ user_mail }}&email_id={{ email.id }}" 
              class="list-group-item list-group-item-action py-3 lh-sm
