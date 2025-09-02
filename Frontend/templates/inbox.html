@@ -17,6 +17,13 @@
 
         <!-- Lista email -->
         <div class="list-group list-group-flush border-bottom scrollarea flex-grow-1" style="overflow-y: scroll;">
+
+          <!-- AGGIUNTA PER RICERCA -->
+          <div class="p-2 border-bottom">
+            <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Cerca email...">
+          </div>
+          <!-- FINE AGGIUNTA -->
+
           <!-- Ciclo per card email -->
           {% for email in emails %}
           <a href="/inbox?user_mail={{ user_mail }}&selected_email_id={{ email.id }}" 
