@@ -306,4 +306,4 @@ def get_total_non_read_emails(db: Session, user_id:int):
 
 #funzione che ritorna il numero di mail cancellate da un utente
 def get_total_cancelled_mails(db: Session, user_id:int):
-    return db.query(Email).join(UserEmail).filter(UserEmail.user_id == user_id, UserEmail.stato_delete == True).count()
+    return db.query(Email).join(UserEmail).filter(UserEmail.user_id == user_id, UserEmail.stato_delete == 1).count()

@@ -105,7 +105,7 @@ def generate_report(db: Session, user_id: int) -> bytes:
     pdf.add_text_grasetto(f"NUMERO TOTALE DI MAIL LETTE :")
     pdf.add_text(f"{num_tot_mail_read} ")
 
-    pdf.add_text_grasetto(f"NUMERO TOTALE DI MAIL CANCELLATE :")
+    pdf.add_text_grasetto(f"NUMERO TOTALE DI MAIL CANCELLATE :") # MAIL NEL CESTINO
     pdf.add_text(f"{num_tot_mail_cancelled} ")
 
     pdf.add_text_grasetto(f"NUMERO TOTALE DI MAIL NON LETTE :")
