@@ -77,17 +77,17 @@ def predict_spam(subject, body, model_path='predicter/spam_classifier_pipeline.j
 
 def classify_spam_reason(subject, body):
     text = (subject + ' ' + body).lower()
-    reasons = ['spam']
+    reasons = []
 
     if re.search(r'\b(bank|account|iban|card|login|password|verify|otp|credentials)\b', text):
-        reasons.append('Sensitive data')
+        reasons.append('Sensitive Data')
     if re.search(r'http[s]?://', text):
-        reasons.append('Contains links')
+        reasons.append('Has Urls')
     if re.search(r'http[s]?://\d{1,3}(?:\.\d{1,3}){3}', text):
-        reasons.append('Link to IP address')
+        reasons.append('IP Address')
     if re.search(r'http[s]?://(?:bit\.ly|tinyurl\.com|freehosting)', text):
-        reasons.append('Suspicious domain')
+        reasons.append('Suspicious Domain')
     if re.search(r'\b(gratis|free|win|bitcoin|investment|only today|money|discount)\b', text):
-        reasons.append('Aggressive marketing')
+        reasons.append('Aggressive Marketing')
 
-    return reasons if reasons else ['Nessuna causa specifica identificata']
+    return reasons if reasons else ['Nothing to add']
