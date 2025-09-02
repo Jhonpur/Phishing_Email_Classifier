@@ -299,7 +299,7 @@ def get_total_spam_emails(db: Session, user_id: int):
 #funzione che ritorna il numero totale di mail lette da un utente
 def get_total_read_emails(db: Session, user_id: int):
     return db.query(UserEmail).filter(UserEmail.user_id == user_id, UserEmail.stato_read == True).count()
-
+ 
 #funzione che ritorna il numero di mail non lette da un utente
 def get_total_non_read_emails(db: Session, user_id:int):
     return db.query(UserEmail).filter(UserEmail.user_id == user_id, UserEmail.stato_read == False).count()
