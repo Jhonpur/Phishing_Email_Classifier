@@ -5,14 +5,21 @@ from .models import User, Email, UserEmail
 from datetime import datetime, timezone
 #import random as rd  # Solo per il test, da rimuovere in produzione
 #from datetime import datetime
- 
+
+#per hashare la password
+from passlib.context import CryptContext
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+#ritorna la passwors hashata
+def get_password_hash(password):
+    return pwd_context.hash(password)
 
 
 # USER CRUD
 
 # funzione per creare un utente
 def create_user(db: Session, nome: str, cognome: str, email: str, password: str  ,genere: str = None, data_nascita: str = None):
-    user = User(nome=nome, cognome=cognome, email=email, password =password, genere=genere, data_nascita=data_nascita)
+    user = User(nome=nome, cognome=cognome, email=email, password = get_password_hash(password), genere=genere, data_nascita=data_nascita)
     db.add(user)
     db.commit()
     db.refresh(user)
